@@ -1,6 +1,6 @@
 # Peform the novel module selection algorithm
-library(ranger)
-library(pROC)
+#library(ranger)
+#library(pROC)
 
 DFNET <- function(DFNET_graph, ntrees=100, niter=200, init.mtry=NaN){
 
