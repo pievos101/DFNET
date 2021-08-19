@@ -1,8 +1,11 @@
 DFNET_generate_graph_Omics <- function(PPI, FEATURES, TARGET, cut.off=NaN){
 
 
-omic1 <- FEATURES[[1]]
-omic2 <- FEATURES[[2]]
+#omic1 <- FEATURES[[1]]
+#omic2 <- FEATURES[[2]]
+
+OMICS      <- FEATURES
+GENE_NAMES <- lapply(OMICS, colnames)
 
 NET   <- PPI
 
@@ -11,11 +14,15 @@ NET   <- PPI
 # So, clean data again
 
 #Harmonize Multi-Omics data
-common_genes    <- intersect(colnames(omic1), colnames(omic2))
-#common_genes     <- Reduce(intersect, ...)
+#common_genes    <- intersect(colnames(omic1), colnames(omic2))
+common_genes     <- Reduce(intersect, GENE_NAMES)
 
-omic1  <- omic1[,common_genes]
-omic2  <- omic2[,common_genes]
+for(xx in 1:length(OMICS)){
+	OMICS[[xx]] <- OMICS[[xx]][,common_genes]
+}
+
+#omic1  <- omic1[,common_genes]
+#omic2  <- omic2[,common_genes]
 
 # HARMONIZE WITH PPI (1)
 ids1    <- match(NET[,1], common_genes)
@@ -33,8 +40,13 @@ NET     <- NET[-na.IDS,]
 PPI_genes   <- unique(c(NET[,1],NET[,2]))
 ids         <- match(common_genes, PPI_genes)
 na.ids      <- which(is.na(ids))
-omic1       <- omic1[,-na.ids]
-omic2       <- omic2[,-na.ids]
+
+#omic1       <- omic1[,-na.ids]
+#omic2       <- omic2[,-na.ids]
+
+for(xx in 1:length(OMICS)){
+	OMICS[[xx]] <- OMICS[[xx]][,-na.ids]
+}
 
 
 if(!is.na(cut.off)){
@@ -45,35 +57,48 @@ if(!is.na(cut.off)){
 	# Renew data accordingly
 	NET    <- NET[ids,]
 	PPI_genes <- unique(c(NET[,1],NET[,2]))
-	ids    <- match(colnames(omic1), PPI_genes)
+	ids    <- match(colnames(OMICS[[1]]), PPI_genes)
 	na.ids <- which(is.na(ids))  
-	omic1  <- omic1[,-na.ids]
-	omic2  <- omic2[,-na.ids]
+	#omic1  <- omic1[,-na.ids]
+	#omic2  <- omic2[,-na.ids]
+	for(xx in 1:length(OMICS)){
+		OMICS[[xx]] <- OMICS[[xx]][,-na.ids]
+	}
+
 
 }
 
 # concert NET data to numeric values
 
-ids1 <- match(NET[,1],colnames(omic1))
-ids2 <- match(NET[,2],colnames(omic1))
+ids1 <- match(NET[,1],colnames(OMICS[[1]]))
+ids2 <- match(NET[,2],colnames(OMICS[[1]]))
 
 NET[,1] <- ids1
 NET[,2] <- ids2
 
-N.Nodes         <- dim(omic1)[2]
+N.Nodes         <- dim(OMICS[[1]])[2]
 
-omic1           <- cbind(omic1, t(TARGET))
-omic2           <- cbind(omic2, t(TARGET))
+#omic1           <- cbind(omic1, t(TARGET))
+#omic2           <- cbind(omic2, t(TARGET))
 
-gene.names      <- colnames(omic1)
-
-colnames(omic1) <- c(paste("AN_", 1:N.Nodes, sep=""),"target")
-omic1           <- as.data.frame(omic1)
-colnames(omic2) <- c(paste("BN_", 1:N.Nodes, sep=""),"target")
-omic2           <- as.data.frame(omic2)
+for(xx in 1:length(OMICS)){
+		OMICS[[xx]] <- cbind(OMICS[[xx]], t(TARGET))
+}
 
 
-IN <- list(omic1, omic2)
+gene.names      <- colnames(OMICS[[1]])
+
+#colnames(omic1) <- c(paste("AN_", 1:N.Nodes, sep=""),"target")
+#omic1           <- as.data.frame(omic1)
+#colnames(omic2) <- c(paste("BN_", 1:N.Nodes, sep=""),"target")
+#omic2           <- as.data.frame(omic2)
+
+for(xx in 1:length(OMICS)){
+		colnames(OMICS[[xx]]) <- c(paste(LETTERS[xx],"N_", 1:N.Nodes, sep=""),"target")
+}
+
+
+IN <- OMICS #list(omic1, omic2)
 
 # remove NaNs from PPI --> no longer needed
 #ids1 <- which(is.na(NET[,1]))
