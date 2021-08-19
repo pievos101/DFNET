@@ -1,12 +1,12 @@
 # RFNET Application (linekd Omics)
 
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_MM.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_SM.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DFNET_generate_graph_Omics.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_MM.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_SM.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DFNET_generate_graph_Omics.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
 
 
 library(ranger)
@@ -43,3 +43,4 @@ DFNET_Eimp   <- DFNET_Edge_Importance(DFNET_graph, DFNET_object)
 
 DFNET_mod    <- DFNET_modules(DFNET_graph, DFNET_object, DFNET_Eimp)
 
+DFNET_Fimp   <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph)
