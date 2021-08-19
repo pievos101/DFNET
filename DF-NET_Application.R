@@ -1,14 +1,5 @@
 # RFNET Application (linekd Omics)
 
-#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
-#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_MM.R")
-#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_SM.R")
-#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
-#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
-#source("~/GitLab/rf-feature-selection-on-graphs/DFNET_generate_graph_Omics.R")
-#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
-
-
 library(ranger)
 library(igraph)
 library(pROC)
@@ -35,7 +26,7 @@ for (xx in na.ids){
 
 DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
 
-DFNET_object <- DFNET(DFNET_graph, ntrees=100, niter=10, init.mtry=15)
+DFNET_object <- DFNET(DFNET_graph, ntrees=100, niter=300, init.mtry=15)
 
 DFNET_acc    <- DFNET_accuracy(DFNET_graph, DFNET_object)
 
@@ -68,7 +59,7 @@ RES$IMP <- as.numeric(RES$IMP)
 
 p <- ggplot(RES, aes(fill=Type, y=IMP, x=Gene)) + 
     geom_bar(position="dodge", stat="identity") +
-    ylab("Impurity Importance") +
+    ylab("Feature Importance") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 plot(p)    
