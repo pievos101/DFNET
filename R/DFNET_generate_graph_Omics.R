@@ -3,6 +3,7 @@ DFNET_generate_graph_Omics <- function(PPI, FEATURES, TARGET, cut.off=NaN){
 
 omic1 <- FEATURES[[1]]
 omic2 <- FEATURES[[2]]
+
 NET   <- PPI
 
 #@FIXME
@@ -11,6 +12,7 @@ NET   <- PPI
 
 #Harmonize Multi-Omics data
 common_genes    <- intersect(colnames(omic1), colnames(omic2))
+#common_genes     <- Reduce(intersect, ...)
 
 omic1  <- omic1[,common_genes]
 omic2  <- omic2[,common_genes]
