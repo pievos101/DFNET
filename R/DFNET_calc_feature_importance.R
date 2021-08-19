@@ -62,7 +62,7 @@ for(xx in 1:length(DFNET_object$DFNET_trees)){
 # Normalize
 FEATURE_imp <- vector("list", length(SUMIMP))
 for(xx in 1:length(SUMIMP)){
-	FEATURE_imp[[xx]] <- SUMIMP[[xx]]/COUNT[[xx]]
+	FEATURE_imp[[xx]] <- SUMIMP[[xx]]/length(DFNET_object$DFNET_trees)#COUNT[[xx]]
 	names(FEATURE_imp[[xx]]) <- DFNET_graph$gene.names[vertices]
 }
 
