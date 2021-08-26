@@ -1,4 +1,4 @@
-#Network Module Detection from Multi-Modal Node Features with a Greedy Decision Forest
+# Network Module Detection from Multi-Modal Node Features with a Greedy Decision Forest
 
 The DFNET R-package can be installed using devtools.
 
