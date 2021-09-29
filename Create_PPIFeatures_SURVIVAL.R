@@ -49,7 +49,9 @@ Methy3      <- Methy2[,-na.ids]
 # READ IN MEDICAL SURVIVAL DATA
 CLIN <- read.table("Human__TCGA_KIRC__MS__Clinical__Clinical__01_28_2016__BI__Clinical__Firehose.tsi", sep="\t", header=TRUE)
 
-survival <- CLIN[13,-1]
+status_id <- which(CLIN[,1]=="status")
+survival <- CLIN[status_id,-1]
+
 ids      <- match(rownames(mRNA3), names(survival))
 survival_final <- survival[ids]
 na.ids <- which(is.na(survival_final))
