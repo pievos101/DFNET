@@ -20,6 +20,7 @@ Nodes   <- V(g)
 N.Nodes <- length(Nodes)
 
 SELECTED_NODES   <- list()
+SELECTED_NODES_WEIGHTS <- list()
 
 if(is.na(init.mtry)){
  n.nodes.per.tree <- ceiling(sqrt(N.Nodes))
@@ -36,14 +37,16 @@ count <- 1
 for (xx in Start.Nodes){
 
     SELECTED_NODES[[count]] <- as.numeric(random_walk(g, xx, n.nodes.per.tree))
-	
+
     # Not optimal solution
     while(length(SELECTED_NODES[[count]]) < n.nodes.per.tree){
         print("retry ..")
         xx2 <- sample(Nodes, 1)
         SELECTED_NODES[[count]] <- as.numeric(random_walk(g, xx2, n.nodes.per.tree))
     }
-
+  
+    SELECTED_NODES_WEIGHTS[[count]] <- as.numeric(table(SELECTED_NODES[[count]]))
+    
     count <- count + 1 
 }
 
@@ -51,15 +54,21 @@ for (xx in Start.Nodes){
 DECISION_TREES <- list()
 
 for (xx in 1:length(SELECTED_NODES)){
-
+  
+    # feature weights are sorted
+    UNIQUE_NODES <- sort(unique(SELECTED_NODES[[xx]])) 
+    UNIQUE_NODES_WEIGHTS <- SELECTED_NODES_WEIGHTS[[xx]]
+    WEIGHTS <- UNIQUE_NODES_WEIGHTS
+    
     # START -- MM Data
     # Collect the features from the MM space
     if(MultiModal){
 
-     MM_DATA  <- IN[[1]][,SELECTED_NODES[[xx]]]
+     MM_DATA  <- IN[[1]][,UNIQUE_NODES]
     	#print("MM Data!")
      for(mm in 2:length(IN)){
-      MM_DATA <- cbind(MM_DATA, IN[[mm]][,SELECTED_NODES[[xx]]])	
+      MM_DATA <- cbind(MM_DATA, IN[[mm]][,UNIQUE_NODES])	
+      WEIGHTS <- c(WEIGHTS, UNIQUE_NODES_WEIGHTS)
      }
 
      MM_DATA <- cbind(MM_DATA, target)
@@ -67,9 +76,8 @@ for (xx in 1:length(SELECTED_NODES)){
     
     }else{
     
-     MM_DATA   <- IN[,SELECTED_NODES[[xx]]]
+     MM_DATA   <- IN[,UNIQUE_NODES]
      MM_DATA   <- as.data.frame(cbind(MM_DATA, target))
-
     }
     # END -- MM Data
 
@@ -79,10 +87,12 @@ for (xx in 1:length(SELECTED_NODES)){
 	rf.sim  <-  ranger(dependent.variable.name = "target",
 					data=MM_DATA, # MM DATA		
 					#data=IN[,c(SELECTED_NODES[[xx]], N.Nodes+1)], 
+					split.select.weights=WEIGHTS / sum(WEIGHTS),
+					verbose = FALSE,
 					classification=TRUE, 
 					importance ="impurity", 
 					num.trees=1, 
-					mtry=n.nodes.per.tree)
+					mtry=dim(MM_DATA)[2] - 1) # at each split consider all variables
                     #replace = TRUE)
 
 	DECISION_TREES[[xx]] <- rf.sim
@@ -117,6 +127,7 @@ DECISION_TREES_ALL      <- list()
 DECISION_TREES_ALL      <- DECISION_TREES
 SELECTED_NODES_X        <- SELECTED_NODES
 SELECTED_NODES_X_OLD    <- SELECTED_NODES_X
+SELECTED_NODES_WEIGHTS  <- list()
 
 WALK.DEPTH     <- rep(ceiling(n.nodes.per.tree), N.trees) 
 WALK.DEPTH_OLD <- WALK.DEPTH
@@ -175,6 +186,8 @@ for (xx in Start.Nodes_X){
 	#}
 
 	SELECTED_NODES_X[[count]] <- as.numeric(random_walk(g, xx, WALK.DEPTH[count]))
+	SELECTED_NODES_WEIGHTS[[count]] <- as.numeric(table(SELECTED_NODES_X[[count]]))
+
 	count <- count + 1 
 }
 
@@ -183,6 +196,11 @@ DECISION_TREES <- list()
 
 for (xx in 1:length(SELECTED_NODES_X)){
 
+  # feature weights are sorted
+  UNIQUE_NODES <- sort(unique(SELECTED_NODES_X[[xx]])) 
+  UNIQUE_NODES_WEIGHTS <- SELECTED_NODES_WEIGHTS[[xx]]
+  WEIGHTS <- UNIQUE_NODES_WEIGHTS 
+
     # if(converge[xx]){next}
 	# Peform Feature Selection
 
@@ -190,10 +208,11 @@ for (xx in 1:length(SELECTED_NODES_X)){
     # Collect the features from the MM space
     if(MultiModal){
 
-     MM_DATA  <- IN[[1]][,SELECTED_NODES_X[[xx]]]
+     MM_DATA  <- IN[[1]][,UNIQUE_NODES]
     	#print("MM Data!")
      for(mm in 2:length(IN)){
-      MM_DATA <- cbind(MM_DATA, IN[[mm]][,SELECTED_NODES_X[[xx]]])	
+      MM_DATA <- cbind(MM_DATA, IN[[mm]][,UNIQUE_NODES])	
+      WEIGHTS <- c(WEIGHTS, UNIQUE_NODES_WEIGHTS)
      }
 
      MM_DATA <- cbind(MM_DATA, target)
@@ -201,20 +220,20 @@ for (xx in 1:length(SELECTED_NODES_X)){
     
     }else{
     
-     MM_DATA   <- IN[,SELECTED_NODES_X[[xx]]]
+     MM_DATA   <- IN[,UNIQUE_NODES]
      MM_DATA   <- as.data.frame(cbind(MM_DATA, target))
 
     }
     # END -- MM Data
-
-
 	rf.sim  <-  ranger(dependent.variable.name = "target",
 					data = MM_DATA, # MM DATA
 					#data = IN[,c(SELECTED_NODES_X[[xx]], N.Nodes+1)], 
+					split.select.weights=WEIGHTS / sum(WEIGHTS),
+					verbose = FALSE,
 					classification = TRUE, 
 					importance = "impurity", 
 					num.trees = 1, 
-					mtry = WALK.DEPTH[xx],
+					mtry = dim(MM_DATA)[2] - 1, # at each split consider all variables
 					replace = TRUE) # crucial parameter!
 
 	DECISION_TREES[[xx]] <- rf.sim
