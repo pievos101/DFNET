@@ -107,7 +107,7 @@ p <- ggplot(df, aes(x = variable, y = importance)) +
 p
 
 
-# join mm features into edge importance ? 
+# join mm features into node importance ? 
 variable_count <- dim(sv)[2]/2
 sv_join <- sv[,1:variable_count] + sv[,(variable_count+1):(2*variable_count)]
 colnames(sv_join) <- as.numeric(lapply(
@@ -126,7 +126,7 @@ p_joined <- ggplot(df_joined, aes(x = variable, y = importance)) +
   coord_flip() +
   theme_drwhy_vertical() +
   ylab("mean(|SHAP_A + SHAP_B|)") + xlab("") +
-  labs(title = "Edge Importance") +
+  labs(title = "Node Importance") +
   scale_y_continuous(labels = scales::comma) +
   theme(legend.position = "none")
 p_joined
