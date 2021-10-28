@@ -258,9 +258,11 @@ if(length(ids_schrink)>0){
  WALK.DEPTH_OLD[ids_schrink]          <- WALK.DEPTH[ids_schrink] - 1
 }
 if(length(ids_schrink_not)>0){
+ # ?
  AUC_PER_TREE_OLD[ids_schrink_not]     <- AUC_PER_TREE_OLD[ids_schrink_not]
  SELECTED_NODES_X_OLD[ids_schrink_not] <- SELECTED_NODES_X_OLD[ids_schrink_not] 
  WALK.DEPTH_OLD[ids_schrink_not]       <- WALK.DEPTH_OLD[ids_schrink_not]
+ 
  DECISION_TREES[ids_schrink_not]       <- NULL 
 }
 

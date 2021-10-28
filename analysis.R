@@ -25,6 +25,9 @@ source("source.R")
 
 
 graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
+saveRDS(graph, "graph.rds")
+
+graph <- readRDS("graph.rds")
 
 # retrieve full data
 dataset <- do.call(cbind, graph[[2]])
@@ -40,9 +43,27 @@ saveRDS(dfnet, "dfnet.rds")
 
 dfnet <- readRDS("dfnet.rds")
 
+eimp <- DFNET_Edge_Importance(graph, dfnet)
+saveRDS(eimp, "eimp.rds")
+
+eimp <- readRDS("eimp.rds")
+
+modules <- DFNET_modules(graph, dfnet, eimp)
+saveRDS(modules, "modules.rds")
+
+modules <- readRDS("modules.rds")
+
+nodes <- unlist(stringr::str_split(modules$Module, " "))
+length(unique(nodes))
+sum(table(nodes) > 1)
+# frequency of nodes
+hist(table(nodes))
+
 # retrieve all trees
 trees <- dfnet$DFNET_trees
 length(trees)
+
+sapply(trees, function(x) length(x$variable.importance))
 
 single_tree <- trees[[101]]
 single_tree

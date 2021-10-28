@@ -2,3 +2,5 @@ data/**
 .Rhistory
 .RData
 **.rds
+analysis.rmd
+analysis.pdf
