@@ -1,6 +1,6 @@
 # predict outcome based on forest
 DFNET_predict <- function(DFNET_object, DFNET_graph){
-  require(pROC)
+  #require(pROC)
 
   # retrieve full data
   dataset <- do.call(cbind, DFNET_graph[[2]])
