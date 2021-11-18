@@ -1,7 +1,7 @@
 # RFNET calc Accuracy
 range01        <- function(x){(x-min(x))/(max(x)-min(x))}
 
-DFNET_accuracy <- function(DFNET_graph, DFNET_object){
+DFNET_accuracy <- function(DFNET_graph, DFNET_object, n.last.trees=NaN){
 
 g        <- DFNET_graph[[1]]
 IN       <- DFNET_graph[[2]]
@@ -16,9 +16,11 @@ if(MultiModalData){
 
 EDGELIST <- as_edgelist(g, names = TRUE)
 
-
-DECISION_TREES_ALL <- DFNET_object$DFNET_trees
-
+if(is.na(n.last.trees)){
+	DECISION_TREES_ALL <- DFNET_object$DFNET_trees
+}else{
+	DECISION_TREES_ALL <- tail(DFNET_object$DFNET_trees, n.last.trees)
+}
 
 # Calculate Classifier prediction
 PRED            <- sapply(DECISION_TREES_ALL,function(x){x$predictions})

@@ -6,9 +6,12 @@ library(pROC)
 
 
 PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
-mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
-Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
-TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+
+mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
+Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
+Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
+
+TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
 
 #@FIXME -- UGLY
 # Replace NANs with mean
@@ -26,7 +29,7 @@ for (xx in na.ids){
 
 DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
 
-DFNET_object <- DFNET(DFNET_graph, ntrees=100, niter=50, init.mtry=15)
+DFNET_object <- DFNET(DFNET_graph, ntrees=100, niter=300, init.mtry=15)
 
 DFNET_acc    <- DFNET_accuracy(DFNET_graph, DFNET_object)
 
