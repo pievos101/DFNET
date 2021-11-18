@@ -15,8 +15,8 @@ DFNET_predict <- function(DFNET_object, DFNET_graph){
   val <- apply(pred, 2, function(x){
     return(as.numeric(names(sort(table(x),decreasing=TRUE))[1]))
     })
-  # Calculate AUC
-  names(val) <- rownames(dataset)
   
+  names(val) <- rownames(dataset)
+
 return(val)  
 }
