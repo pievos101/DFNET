@@ -1,11 +1,12 @@
 # 
 # Random Forests on Graphs
 #
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
+library(DFNET)
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
 source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_MM.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
 source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_load_Graph_MM.R")
 
 
@@ -70,8 +71,8 @@ cat(xx, " of ", length(NITER), "done! ---------------- \n")
 }
 
 # Save the entire R Workspace
-save.image("RESULTS.RData")
-save(DFNET_graph, file="Graph.RData")
+#save.image("RESULTS.RData")
+#save(DFNET_graph, file="Graph.RData")
 
 
 # Do some Plots

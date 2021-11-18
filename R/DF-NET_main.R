@@ -10,9 +10,9 @@ IN         <- DFNET_graph[[2]] #its a list # MM DATA
 # MM -- START
 MultiModal <- !is.data.frame(IN)
 if(MultiModal){
-	target  <- IN[[1]][,"target"] # MM DATA
+    target  <- IN[[1]][,"target"] # MM DATA
 }else{
-	target  <- IN[,"target"] 
+    target  <- IN[,"target"] 
 }
 ## MM -- END
 
@@ -20,6 +20,7 @@ Nodes   <- V(g)
 N.Nodes <- length(Nodes)
 
 SELECTED_NODES   <- list()
+SELECTED_NODES_WEIGHTS <- list()
 
 if(is.na(init.mtry)){
  n.nodes.per.tree <- ceiling(sqrt(N.Nodes))
@@ -36,14 +37,16 @@ count <- 1
 for (xx in Start.Nodes){
 
     SELECTED_NODES[[count]] <- as.numeric(random_walk(g, xx, n.nodes.per.tree))
-	
+
     # Not optimal solution
     while(length(SELECTED_NODES[[count]]) < n.nodes.per.tree){
         print("retry ..")
         xx2 <- sample(Nodes, 1)
         SELECTED_NODES[[count]] <- as.numeric(random_walk(g, xx2, n.nodes.per.tree))
     }
-
+  
+    SELECTED_NODES_WEIGHTS[[count]] <- as.numeric(table(SELECTED_NODES[[count]]))
+    
     count <- count + 1 
 }
 
@@ -51,15 +54,21 @@ for (xx in Start.Nodes){
 DECISION_TREES <- list()
 
 for (xx in 1:length(SELECTED_NODES)){
-
+  
+    # feature weights are sorted
+    UNIQUE_NODES <- sort(unique(SELECTED_NODES[[xx]])) 
+    UNIQUE_NODES_WEIGHTS <- SELECTED_NODES_WEIGHTS[[xx]]
+    WEIGHTS <- UNIQUE_NODES_WEIGHTS
+    
     # START -- MM Data
     # Collect the features from the MM space
     if(MultiModal){
 
-     MM_DATA  <- IN[[1]][,SELECTED_NODES[[xx]]]
-    	#print("MM Data!")
+     MM_DATA  <- IN[[1]][,UNIQUE_NODES]
+        #print("MM Data!")
      for(mm in 2:length(IN)){
-      MM_DATA <- cbind(MM_DATA, IN[[mm]][,SELECTED_NODES[[xx]]])	
+      MM_DATA <- cbind(MM_DATA, IN[[mm]][,UNIQUE_NODES])    
+      WEIGHTS <- c(WEIGHTS, UNIQUE_NODES_WEIGHTS)
      }
 
      MM_DATA <- cbind(MM_DATA, target)
@@ -67,25 +76,26 @@ for (xx in 1:length(SELECTED_NODES)){
     
     }else{
     
-     MM_DATA   <- IN[,SELECTED_NODES[[xx]]]
+     MM_DATA   <- IN[,UNIQUE_NODES]
      MM_DATA   <- as.data.frame(cbind(MM_DATA, target))
-
     }
     # END -- MM Data
 
     #print(dim(MM_DATA))
 
-	# Peform Feature Selection
-	rf.sim  <-  ranger(dependent.variable.name = "target",
-					data=MM_DATA, # MM DATA		
-					#data=IN[,c(SELECTED_NODES[[xx]], N.Nodes+1)], 
-					classification=TRUE, 
-					importance ="impurity", 
-					num.trees=1, 
-					mtry=n.nodes.per.tree)
+    # Peform Feature Selection
+    rf.sim  <-  ranger(dependent.variable.name = "target",
+                    data=MM_DATA, # MM DATA     
+                    #data=IN[,c(SELECTED_NODES[[xx]], N.Nodes+1)], 
+                    split.select.weights=WEIGHTS / sum(WEIGHTS),
+                    verbose = FALSE,
+                    classification=TRUE, 
+                    importance ="impurity", 
+                    num.trees=1, 
+                    mtry=dim(MM_DATA)[2] - 1) # at each split consider all variables
                     #replace = TRUE)
 
-	DECISION_TREES[[xx]] <- rf.sim
+    DECISION_TREES[[xx]] <- rf.sim
 
 }
 
@@ -99,8 +109,8 @@ AUC_PER_TREE_01 <- range01(AUC_PER_TREE)
 
 
 PRED_VEC   <- apply(PRED,1, function(x){
-				sum(x==1, na.rm=TRUE)-sum(x==0, na.rm=TRUE)
-				})
+                sum(x==1, na.rm=TRUE)-sum(x==0, na.rm=TRUE)
+                })
 
 PRED_VEC[PRED_VEC==0] <- NaN
 PRED_VEC[PRED_VEC<0]  <- 0
@@ -117,6 +127,7 @@ DECISION_TREES_ALL      <- list()
 DECISION_TREES_ALL      <- DECISION_TREES
 SELECTED_NODES_X        <- SELECTED_NODES
 SELECTED_NODES_X_OLD    <- SELECTED_NODES_X
+SELECTED_NODES_WEIGHTS  <- list()
 
 WALK.DEPTH     <- rep(ceiling(n.nodes.per.tree), N.trees) 
 WALK.DEPTH_OLD <- WALK.DEPTH
@@ -124,7 +135,7 @@ WALK.DEPTH_OLD <- WALK.DEPTH
 
 range01             <- function(x){
     if(all(x==1)){return(x)}
-	(x-min(x))/(max(x)-min(x))
+    (x-min(x))/(max(x)-min(x))
 }
 
 AUC_PER_TREE_01_OLD <- AUC_PER_TREE_01
@@ -167,15 +178,17 @@ cat(xx, " of ", ITER, "\n")
 count <- 1
 for (xx in Start.Nodes_X){
 
-	#print(xx)
-	#if(converge[xx]){
-		#SELECTED_NODES_X[[count]] <- SELECTED_NODES_X_OLD[[count]]
-	#	count <- count + 1 
-	#	next
-	#}
+    #print(xx)
+    #if(converge[xx]){
+        #SELECTED_NODES_X[[count]] <- SELECTED_NODES_X_OLD[[count]]
+    #   count <- count + 1 
+    #   next
+    #}
 
-	SELECTED_NODES_X[[count]] <- as.numeric(random_walk(g, xx, WALK.DEPTH[count]))
-	count <- count + 1 
+    SELECTED_NODES_X[[count]] <- as.numeric(random_walk(g, xx, WALK.DEPTH[count]))
+    SELECTED_NODES_WEIGHTS[[count]] <- as.numeric(table(SELECTED_NODES_X[[count]]))
+
+    count <- count + 1 
 }
 
 # Create the TREES
@@ -183,17 +196,23 @@ DECISION_TREES <- list()
 
 for (xx in 1:length(SELECTED_NODES_X)){
 
-    # if(converge[xx]){next}
-	# Peform Feature Selection
+  # feature weights are sorted
+  UNIQUE_NODES <- sort(unique(SELECTED_NODES_X[[xx]])) 
+  UNIQUE_NODES_WEIGHTS <- SELECTED_NODES_WEIGHTS[[xx]]
+  WEIGHTS <- UNIQUE_NODES_WEIGHTS 
 
-	# START -- MM Data
+    # if(converge[xx]){next}
+    # Peform Feature Selection
+
+    # START -- MM Data
     # Collect the features from the MM space
     if(MultiModal){
 
-     MM_DATA  <- IN[[1]][,SELECTED_NODES_X[[xx]]]
-    	#print("MM Data!")
+     MM_DATA  <- IN[[1]][,UNIQUE_NODES]
+        #print("MM Data!")
      for(mm in 2:length(IN)){
-      MM_DATA <- cbind(MM_DATA, IN[[mm]][,SELECTED_NODES_X[[xx]]])	
+      MM_DATA <- cbind(MM_DATA, IN[[mm]][,UNIQUE_NODES])    
+      WEIGHTS <- c(WEIGHTS, UNIQUE_NODES_WEIGHTS)
      }
 
      MM_DATA <- cbind(MM_DATA, target)
@@ -201,23 +220,23 @@ for (xx in 1:length(SELECTED_NODES_X)){
     
     }else{
     
-     MM_DATA   <- IN[,SELECTED_NODES_X[[xx]]]
+     MM_DATA   <- IN[,UNIQUE_NODES]
      MM_DATA   <- as.data.frame(cbind(MM_DATA, target))
 
     }
     # END -- MM Data
+    rf.sim  <-  ranger(dependent.variable.name = "target",
+                    data = MM_DATA, # MM DATA
+                    #data = IN[,c(SELECTED_NODES_X[[xx]], N.Nodes+1)], 
+                    split.select.weights=WEIGHTS / sum(WEIGHTS),
+                    verbose = FALSE,
+                    classification = TRUE, 
+                    importance = "impurity", 
+                    num.trees = 1, 
+                    mtry = dim(MM_DATA)[2] - 1, # at each split consider all variables
+                    replace = TRUE) # crucial parameter!
 
-
-	rf.sim  <-  ranger(dependent.variable.name = "target",
-					data = MM_DATA, # MM DATA
-					#data = IN[,c(SELECTED_NODES_X[[xx]], N.Nodes+1)], 
-					classification = TRUE, 
-					importance = "impurity", 
-					num.trees = 1, 
-					mtry = WALK.DEPTH[xx],
-					replace = TRUE) # crucial parameter!
-
-	DECISION_TREES[[xx]] <- rf.sim
+    DECISION_TREES[[xx]] <- rf.sim
 
 }
 
@@ -239,9 +258,11 @@ if(length(ids_schrink)>0){
  WALK.DEPTH_OLD[ids_schrink]          <- WALK.DEPTH[ids_schrink] - 1
 }
 if(length(ids_schrink_not)>0){
+ # ?
  AUC_PER_TREE_OLD[ids_schrink_not]     <- AUC_PER_TREE_OLD[ids_schrink_not]
  SELECTED_NODES_X_OLD[ids_schrink_not] <- SELECTED_NODES_X_OLD[ids_schrink_not] 
  WALK.DEPTH_OLD[ids_schrink_not]       <- WALK.DEPTH_OLD[ids_schrink_not]
+ 
  DECISION_TREES[ids_schrink_not]       <- NULL 
 }
 
@@ -260,19 +281,19 @@ WALK.DEPTH_OLD[WALK.DEPTH_OLD<2]  <- 2
 
 #if(all(converge==TRUE) & (ITER%%10==0)){
 #    print("reset")
-#	converge <- rep(FALSE, N.trees)
+#   converge <- rep(FALSE, N.trees)
 #}
 
 #print(converge)
 
 #if(all(WALK.DEPTH_OLD==WALK.DEPTH)){
-#	print("EARLY STOP!")
-#	break
+#   print("EARLY STOP!")
+#   break
 #}
 
 #if(all(converge)){
-#	print("EARLY STOP!")
-#	break
+#   print("EARLY STOP!")
+#   break
 #}
 
 
@@ -282,7 +303,6 @@ WALK.DEPTH_OLD[WALK.DEPTH_OLD<2]  <- 2
 }# End of for loop
 
 return(list(DFNET_graph=DFNET_graph, DFNET_trees=DECISION_TREES_ALL, 
-			DFNET_MODULES=SELECTED_NODES_X_OLD, DFNET_MODULES_AUC=AUC_PER_TREE_OLD))
+            DFNET_MODULES=SELECTED_NODES_X_OLD, DFNET_MODULES_AUC=AUC_PER_TREE_OLD))
 
 }# End of function
-

@@ -25,7 +25,8 @@ EDGE_IMP <- vector("list", dim(EDGELIST)[1])
 
 for (xx in 1:dim(EDGELIST)[1]){
 
-cat(xx, " of ", dim(EDGELIST)[1], " edges \n")
+#cat(xx, " of ", dim(EDGELIST)[1], " edges \n")
+if (xx %% 2000 == 0) cat(xx, " of ", dim(EDGELIST)[1], " edges \n")
 
 edge <- paste("N_", EDGELIST[xx,], sep="")
 
