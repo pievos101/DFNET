@@ -4,13 +4,15 @@ library(ranger)
 library(igraph)
 library(pROC)
 
+## PPI
+PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
 
-PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
-
+## Features
 mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
 Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
 Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
 
+# Outcome class
 TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
 
 #@FIXME -- UGLY
@@ -27,9 +29,9 @@ for (xx in na.ids){
 
 # Perform DFNET
 
-DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
+DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy, Mut), TARGET, 0.95)
 
-DFNET_object <- DFNET(DFNET_graph, ntrees=100, niter=300, init.mtry=15)
+DFNET_object <- DFNET(DFNET_graph, ntrees=200, niter=300, init.mtry=20)
 
 DFNET_acc    <- DFNET_accuracy(DFNET_graph, DFNET_object)
 
