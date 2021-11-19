@@ -1,5 +1,4 @@
 # RFNET Application (linekd Omics)
-
 library(ranger)
 library(igraph)
 library(pROC)
@@ -52,7 +51,7 @@ TARGET2 <- unlist(TARGET)[c(ids1,ids2)]
 
 DFNET_graph$Feature_Matrix[[1]] <- DFNET_graph$Feature_Matrix[[1]][c(ids1,ids2),]
 DFNET_graph$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][c(ids1,ids2),]
-
+# ---------------------------------------- #
 
 # Create TRAIN set ----------------------------------- #
 DFNET_graph_train <- DFNET_graph
@@ -72,11 +71,16 @@ DFNET_graph_test$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][test_ids
 
 table(TARGET2[test_ids])
 
+## DFNET GREEDY FOREST 
 DFNET_object <- DFNET(DFNET_graph_train, ntrees=100, niter=300, init.mtry=20)
 
+# PREDICTION
 DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
 
+# PERFORMANCE
 DFNET_perf   <- DFNET_performance(DFNET_pred, TARGET2[test_ids])
+
+DFNET_perf
 
 DFNET_perf$byClass
 
