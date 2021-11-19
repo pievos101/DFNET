@@ -6,14 +6,20 @@ library(pROC)
 
 ## PPI
 PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
+#PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
 
 ## Features
 mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
+#mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
+
 Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
-Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
+#Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
+
+#Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
 
 # Outcome class
 TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
+#TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
 #@FIXME -- UGLY
 # Replace NANs with mean
@@ -29,11 +35,15 @@ for (xx in na.ids){
 
 # Perform DFNET
 
-DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy, Mut), TARGET, 0.95)
+DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
 
-DFNET_object <- DFNET(DFNET_graph, ntrees=200, niter=300, init.mtry=20)
+DFNET_object <- DFNET(DFNET_graph, ntrees=100, niter=100, init.mtry=15)
 
-DFNET_acc    <- DFNET_accuracy(DFNET_graph, DFNET_object)
+DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph)
+
+DFNET_perf   <- DFNET_performance(DFNET_pred, unlist(TARGET))
+
+DFNET_perf$byClass
 
 DFNET_Eimp   <- DFNET_Edge_Importance(DFNET_graph, DFNET_object)
 
@@ -45,7 +55,7 @@ Nodes        <- as.numeric(strsplit(DFNET_mod[1,1]," ")[[1]])
 DFNET_Fimp   <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph)
 
 
-#Generate some plots
+# Generate some plots
 
 ## GGPLOT
 library(ggplot2)
