@@ -5,21 +5,21 @@ library(igraph)
 library(pROC)
 
 ## PPI
-PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
-#PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
+#PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
+PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
 
 ## Features
-mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
-#mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
+#mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
+mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
 
-Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
-#Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
+#Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
+Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
 
 #Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
 
 # Outcome class
-TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
-#TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+#TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
+TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
 #@FIXME -- UGLY
 # Replace NANs with mean
@@ -37,13 +37,49 @@ for (xx in na.ids){
 
 DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
 
-DFNET_object <- DFNET(DFNET_graph, ntrees=100, niter=100, init.mtry=15)
+# Make data balanced -------------------------------------------- #
+TT        <- table(unlist(TARGET))
+id        <- which.min(TT)
+down_samp <- TT[id]
+class     <- as.numeric(names(TT[id]))
+down_ids  <- sample(which(unlist(TARGET)!=class), down_samp)
 
-DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph)
+ids1 <- down_ids
+ids2 <- which(unlist(TARGET)==class)
 
-DFNET_perf   <- DFNET_performance(DFNET_pred, unlist(TARGET))
+TARGET2 <- unlist(TARGET)[c(ids1,ids2)]
+
+DFNET_graph$Feature_Matrix[[1]] <- DFNET_graph$Feature_Matrix[[1]][c(ids1,ids2),]
+DFNET_graph$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][c(ids1,ids2),]
+
+
+# Create TRAIN set ----------------------------------- #
+DFNET_graph_train <- DFNET_graph
+## 80% of the sample size
+smp_size  <- floor(0.80 * nrow(DFNET_graph$Feature_Matrix[[1]]))
+train_ids <- sample(seq_len(nrow(DFNET_graph$Feature_Matrix[[1]])), size = smp_size)
+DFNET_graph_train$Feature_Matrix[[1]] <- DFNET_graph$Feature_Matrix[[1]][train_ids,]
+DFNET_graph_train$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][train_ids,]
+
+table(TARGET2[train_ids])
+
+# Create TEST set ------------------------------------ #
+DFNET_graph_test  <- DFNET_graph
+test_ids <- (1:nrow(DFNET_graph$Feature_Matrix[[1]]))[-train_ids]
+DFNET_graph_test$Feature_Matrix[[1]] <- DFNET_graph$Feature_Matrix[[1]][test_ids,]
+DFNET_graph_test$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][test_ids,]
+
+table(TARGET2[test_ids])
+
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=100, niter=100, init.mtry=20)
+
+DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
+
+DFNET_perf   <- DFNET_performance(DFNET_pred, TARGET2[test_ids])
 
 DFNET_perf$byClass
+
+# Feature Selection - Importance Measures
 
 DFNET_Eimp   <- DFNET_Edge_Importance(DFNET_graph, DFNET_object)
 
