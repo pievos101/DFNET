@@ -79,21 +79,22 @@ DFNET_perf   <- DFNET_performance(DFNET_pred, TARGET2[test_ids])
 
 DFNET_perf$byClass
 
-# Sensitivity is more relevant because hit is death outcome
+# Sensitivity is more relevant because hit means death outcome
 Sensitivity  <- DFNET_perf$byClass["Sensitivity"]
 Specificity  <- DFNET_perf$byClass["Specificity"]
 
 # Feature Selection - Importance Measures
 
-DFNET_Eimp   <- DFNET_Edge_Importance(DFNET_graph, DFNET_object)
+DFNET_Eimp   <- DFNET_Edge_Importance(DFNET_graph_train, DFNET_object)
 
-DFNET_mod    <- DFNET_modules(DFNET_graph, DFNET_object, DFNET_Eimp)
+DFNET_mod    <- DFNET_modules(DFNET_graph_train, DFNET_object, DFNET_Eimp)
 
 # Get the nodes of the top-1 module
 Nodes        <- as.numeric(strsplit(DFNET_mod[1,1]," ")[[1]])
 
-DFNET_Fimp   <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph)
+DFNET_Fimp   <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph_train)
 
+# Test this module on the TEST set @TODO
 
 # Generate some plots
 
