@@ -7,6 +7,7 @@ import(pROC)
 #importFrom("utils", "read.table", "write.table")
 
 export(DFNET)
+export(DFNET2)
 export(DFNET_Edge_Importance)
 export(DFNET_modules)
 export(DFNET_generate_graph_Omics)

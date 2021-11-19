@@ -72,7 +72,7 @@ DFNET_graph_test$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][test_ids
 
 table(TARGET2[test_ids])
 
-DFNET_object <- DFNET(DFNET_graph_train, ntrees=100, niter=100, init.mtry=10)
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=100, niter=300, init.mtry=20)
 
 DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
 
@@ -84,7 +84,9 @@ DFNET_perf$byClass
 Sensitivity  <- DFNET_perf$byClass["Sensitivity"]
 Specificity  <- DFNET_perf$byClass["Specificity"]
 
+############################################
 # Feature Selection - Importance Measures
+############################################
 
 DFNET_Eimp   <- DFNET_Edge_Importance(DFNET_graph_train, DFNET_object)
 
