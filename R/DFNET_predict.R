@@ -3,7 +3,7 @@ DFNET_predict <- function(DFNET_object, DFNET_graph, n.last.trees=NaN){
   #require(pROC)
 
   # retrieve full data
-  dataset <- do.call(cbind, DFNET_graph_test[[2]])
+  dataset <- do.call(cbind, DFNET_graph[[2]])
   # leave only one target column
   dataset <- dataset[, -which(colnames(dataset) == "target")[-1]]
 
