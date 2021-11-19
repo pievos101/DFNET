@@ -71,13 +71,17 @@ DFNET_graph_test$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][test_ids
 
 table(TARGET2[test_ids])
 
-DFNET_object <- DFNET(DFNET_graph_train, ntrees=300, niter=100, init.mtry=15)
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=200, niter=100, init.mtry=30)
 
 DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
 
 DFNET_perf   <- DFNET_performance(DFNET_pred, TARGET2[test_ids])
 
 DFNET_perf$byClass
+
+# Sensitivity is more relevant because hit is death outcome
+Sensitivity  <- DFNET_perf$byClass["Sensitivity"]
+Specificity  <- DFNET_perf$byClass["Specificity"]
 
 # Feature Selection - Importance Measures
 
