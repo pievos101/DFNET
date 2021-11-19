@@ -71,7 +71,7 @@ DFNET_graph_test$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][test_ids
 
 table(TARGET2[test_ids])
 
-DFNET_object <- DFNET(DFNET_graph_train, ntrees=200, niter=100, init.mtry=30)
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=100, niter=300, init.mtry=15)
 
 DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
 
