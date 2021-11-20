@@ -1,5 +1,5 @@
 # predict outcome based on forest
-DFNET_predict <- function(DFNET_object, DFNET_graph, n.last.trees=NaN){
+DFNET_predict <- function(DFNET_object, DFNET_graph, n.last.trees=NaN, tree.ID=NaN){
   #require(pROC)
 
   # retrieve full data
@@ -9,12 +9,23 @@ DFNET_predict <- function(DFNET_object, DFNET_graph, n.last.trees=NaN){
 
   pred <- data.frame()
 
-  if(is.na(n.last.trees)){
+  #
+  if(is.na(n.last.trees) & is.na(tree.ID)){
     DECISION_TREES_ALL <- DFNET_object$DFNET_trees
-  }else{
+  }
+
+  #
+  if(!is.na(n.last.trees) & is.na(tree.ID)){
     DECISION_TREES_ALL <- tail(DFNET_object$DFNET_trees, n.last.trees)
   }
 
+  # 
+  if(is.na(n.last.trees) & !is.na(tree.ID)){
+    DECISION_TREES_ALL <- DFNET_object$DFNET_trees[tree.ID]
+  }
+  
+  
+  # Predict
   for (tree in DECISION_TREES_ALL) {
     pred <- rbind(pred, predict(tree, dataset)$predictions)
   }

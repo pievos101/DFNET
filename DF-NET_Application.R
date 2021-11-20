@@ -72,7 +72,7 @@ DFNET_graph_test$Feature_Matrix[[2]] <- DFNET_graph$Feature_Matrix[[2]][test_ids
 table(TARGET2[test_ids])
 
 ## DFNET GREEDY FOREST 
-DFNET_object <- DFNET(DFNET_graph_train, ntrees=100, niter=300, init.mtry=20)
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=100, niter=10, init.mtry=50)
 
 # PREDICTION
 DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
@@ -102,6 +102,13 @@ Nodes        <- as.numeric(strsplit(DFNET_mod[1,1]," ")[[1]])
 DFNET_Fimp   <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph_train)
 
 # Test this module on the TEST set @TODO
+TREEID <- as.numeric(rownames(DFNET_mod)[1])
+
+DFNET_pred_best <- DFNET_predict(DFNET_object, DFNET_graph_test, tree.ID=TREEID)
+DFNET_perf_best <- DFNET_performance(DFNET_pred_best, TARGET2[test_ids])
+
+DFNET_perf_best
+
 
 # Generate some plots
 
