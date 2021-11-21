@@ -5,21 +5,21 @@ library(pROC)
 library(DFNET)
 
 ## PPI
-PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
-#PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
+#PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
+PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
 
 ## Features
-mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
-#mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
+#mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
+mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
 
-Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
-#Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
+#Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
+Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
 
-Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
+#Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
 
 # Outcome class
-TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
-#TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+#TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
+TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
 #@FIXME -- UGLY
 # Replace NANs with mean
@@ -34,7 +34,7 @@ for (xx in na.ids){
 #-----------------------------
 
 # Perform DFNET
-DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy, Mut), TARGET, 0.95)
+DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
 DFNET_graph  <- DFNET_preprocess(DFNET_graph)
 
 
@@ -79,7 +79,7 @@ table(TARGET2[test_ids])
 # niter = 20
 # init.mtry = 20
 
-DFNET_object <- DFNET(DFNET_graph_train, ntrees=1000, niter=1, init.mtry=50)
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=5000, niter=2, init.mtry=50)
 
 # PREDICTION
 DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
