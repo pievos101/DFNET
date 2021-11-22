@@ -33,10 +33,8 @@ for (xx in na.ids){
 }
 #-----------------------------
 
-# Perform DFNET
+# Read Data
 DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
-DFNET_graph  <- DFNET_preprocess(DFNET_graph)
-
 
 # Make data balanced -------------------------------------------- #
 TT        <- table(unlist(TARGET))
@@ -54,6 +52,10 @@ for (xx in 1:length(DFNET_graph$Feature_Matrix)){
     DFNET_graph$Feature_Matrix[[xx]] <- DFNET_graph$Feature_Matrix[[xx]][c(ids1,ids2),]
 }
 # ---------------------------------------- #
+
+# Pre-Processing
+DFNET_graph  <- DFNET_preprocess(DFNET_graph)
+
 
 # Create TRAIN set ----------------------------------- #
 DFNET_graph_train <- DFNET_graph
@@ -79,6 +81,7 @@ table(TARGET2[test_ids])
 # niter = 20
 # init.mtry = 20
 
+# Perform DFNET
 DFNET_object <- DFNET(DFNET_graph_train, ntrees=5000, niter=2, init.mtry=50)
 
 # PREDICTION

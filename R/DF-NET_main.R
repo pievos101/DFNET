@@ -120,6 +120,12 @@ PRED_VEC[PRED_VEC>0]  <- 1
 
 auc(target, PRED_VEC,  na.rm=TRUE, levels = c(0, 1), direction = "<")
 
+if(niter==0){
+return(list(DFNET_graph=DFNET_graph, 
+            DFNET_trees=DECISION_TREES, 
+            DFNET_MODULES=SELECTED_NODES, 
+            DFNET_MODULES_AUC=AUC_PER_TREE))
+}
 
 ##################################################################
 # NOW ITERATE - GREEDY STEP
