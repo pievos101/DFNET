@@ -34,7 +34,7 @@ for (xx in na.ids){
 #-----------------------------
 
 # Read Data
-DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
+DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.90)
 
 # Make data balanced -------------------------------------------- #
     TT        <- table(unlist(TARGET))
@@ -90,7 +90,7 @@ for(sim in 1:N.SIM){
 
 
     # DFNET ------------------------------------ #
-    DFNET_object <- DFNET(DFNET_graph_train, ntrees=1000, niter=20, init.mtry=10)
+    DFNET_object <- DFNET(DFNET_graph_train, ntrees=500, niter=0, init.mtry=15)
 
     # PREDICTION
     DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
@@ -119,8 +119,8 @@ print(DFNET_RESULT)
                     data = TRAIN_DATASET, # MM DATA
                     classification = TRUE, 
                     importance = "impurity", 
-                    num.trees = 1000, 
-                    mtry = 10,
+                    num.trees = 500, 
+                    mtry = 15,
                     replace = TRUE) 
 
     
