@@ -33,10 +33,22 @@ for (xx in na.ids){
 }
 #-----------------------------
 
-# Read Data
-DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.90)
+# DFNET - START SIMULATIONS ----------------------------- #
+N.SIM  <- 20
 
-# Make data balanced -------------------------------------------- #
+DFNET_RESULT <- matrix(NaN, N.SIM, 5)
+colnames(DFNET_RESULT) <- c("Sensitivity","Specificity",
+                        "Precision","Recall","Accuracy")
+RF_RESULT <- matrix(NaN, N.SIM, 5)
+colnames(RF_RESULT) <- c("Sensitivity","Specificity",
+                        "Precision","Recall","Accuracy")
+for(sim in 1:N.SIM){
+
+    
+    # Read Data
+    DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
+
+    # Make data balanced -------------------------------------------- #
     TT        <- table(unlist(TARGET))
     id        <- which.min(TT)
     down_samp <- TT[id]
@@ -53,23 +65,9 @@ DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.90)
     }
     # ---------------------------------------- #
 
+    # Normalize 
+    DFNET_graph  <- DFNET_preprocess(DFNET_graph)
 
-# Normalize 
-DFNET_graph  <- DFNET_preprocess(DFNET_graph)
-
-
-# DFNET - START SIMULATIONS ----------------------------- #
-N.SIM  <- 20
-
-DFNET_RESULT <- matrix(NaN, N.SIM, 5)
-colnames(DFNET_RESULT) <- c("Sensitivity","Specificity",
-                        "Precision","Recall","Accuracy")
-RF_RESULT <- matrix(NaN, N.SIM, 5)
-colnames(RF_RESULT) <- c("Sensitivity","Specificity",
-                        "Precision","Recall","Accuracy")
-for(sim in 1:N.SIM){
-
-    
     # Create TRAIN set ----------------------------------- #
     DFNET_graph_train <- DFNET_graph
     ## 80% of the sample size
