@@ -6,20 +6,25 @@ library(DFNET)
 
 ## PPI
 #PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
-PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
+#PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
+PPI      <- read.table("~/LinkedOmics/LUAD/LUAD_PPI.txt")
 
 ## Features
 #mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
-mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
+#mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
+mRNA     <- read.table("~/LinkedOmics/LUAD/LUAD_mRNA_FEATURES.txt")
 
 #Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
-Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
+#Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
+Methy    <- read.table("~/LinkedOmics/LUAD/LUAD_Methy_FEATURES.txt")
 
 #Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
+Mut      <- read.table("~/LinkedOmics/LUAD/LUAD_Mut_FEATURES.txt")
 
 # Outcome class
 #TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
-TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+#TARGET   <- read.table("~/LinkedOmics/LUAD/KIDNEY_SURVIVAL.txt")
+TARGET   <- read.table("~/LinkedOmics/LUAD/LUAD_SURVIVAL.txt")
 
 #@FIXME -- UGLY
 # Replace NANs with mean
@@ -43,10 +48,9 @@ RF_RESULT <- matrix(NaN, N.SIM, 5)
 colnames(RF_RESULT) <- c("Sensitivity","Specificity",
                         "Precision","Recall","Accuracy")
 for(sim in 1:N.SIM){
-
     
     # Read Data
-    DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
+    DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy, Mut), TARGET, 0.80)
 
     # Make data balanced -------------------------------------------- #
     TT        <- table(unlist(TARGET))
@@ -88,7 +92,7 @@ for(sim in 1:N.SIM){
 
 
     # DFNET ------------------------------------ #
-    DFNET_object <- DFNET(DFNET_graph_train, ntrees=500, niter=0, init.mtry=15)
+    DFNET_object <- DFNET(DFNET_graph_train, ntrees=1000, niter=1, init.mtry=15)
 
     # PREDICTION
     DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
@@ -108,16 +112,18 @@ print(DFNET_RESULT)
     
     # Vanilla RF
     # TRAIN
-    dataset1 <- DFNET_graph_train$Feature_Matrix[[1]]
-    dataset2 <- DFNET_graph_train$Feature_Matrix[[2]]
-    DATASETX <- cbind(dataset1, dataset2)
-    TRAIN_DATASET  <- DATASETX[, -which(colnames(DATASETX) == "target")[-1]]
+    #dataset1 <- DFNET_graph_train$Feature_Matrix[[1]]
+    #dataset2 <- DFNET_graph_train$Feature_Matrix[[2]]
+    #dataset3 <- DFNET_graph_train$Feature_Matrix[[3]]
+    
+    DATASETX       <- do.call(cbind, DFNET_graph_train$Feature_Matrix)
+    TRAIN_DATASET  <- DATASETX[, -which(colnames(DATASETX) == "target")[-c(1,2)]]
     
     vanilla_rf  <-  ranger(dependent.variable.name = "target",
                     data = TRAIN_DATASET, # MM DATA
                     classification = TRUE, 
                     importance = "impurity", 
-                    num.trees = 500, 
+                    num.trees = 1000, 
                     mtry = 15,
                     replace = TRUE) 
 
@@ -126,8 +132,10 @@ print(DFNET_RESULT)
     # TEST
     dataset1 <- DFNET_graph_test$Feature_Matrix[[1]]
     dataset2 <- DFNET_graph_test$Feature_Matrix[[2]]
-    DATASETX <- cbind(dataset1, dataset2)
-    TEST_DATASET  <- DATASETX[, -which(colnames(DATASETX) == "target")[-1]]
+    dataset3 <- DFNET_graph_test$Feature_Matrix[[3]]
+    
+    DATASETX      <- cbind(dataset1, dataset2, dataset3)
+    TEST_DATASET  <- DATASETX[, -which(colnames(DATASETX) == "target")[-c(1,2)]]
     
     pp    <- predict(vanilla_rf, TEST_DATASET)
     pred  <- pp$predictions
