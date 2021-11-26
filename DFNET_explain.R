@@ -1,4 +1,4 @@
-DFNET_explain <- function(forest, plots=FALSE){
+DFNET_explain <- function(forest, treeID=NaN, plots=FALSE){
 	
 	require(treeshap)
 	# Unify 
