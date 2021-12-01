@@ -4,9 +4,9 @@ KIDNEY_PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
 KIDNEY_mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
 KIDNEY_Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
 
-OV_PPI      <- read.table("~/LinkedOmics/OV/OV_PPI.txt")
-OV_mRNA     <- read.table("~/LinkedOmics/OV/OV_mRNA_FEATURES.txt")
-OV_Methy    <- read.table("~/LinkedOmics/OV/OV_Methy_FEATURES.txt")
+OV_PPI      <- read.table("~/LinkedOmics/RANDOM/RANDOM_PPI.txt")
+OV_mRNA     <- read.table("~/LinkedOmics/RANDOM/RANDOM_mRNA_FEATURES.txt")
+OV_Methy    <- read.table("~/LinkedOmics/RANDOM/RANDOM_Methy_FEATURES.txt")
 
 #TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt"
 
@@ -38,10 +38,18 @@ PPI2    <- KIDNEY_PPI[-na.IDS,]
 PPI_genes   <- unique(c(PPI2[,1], PPI2[,2]))
 ids         <- match(COMMON_NAMES, PPI_genes)
 na.ids      <- which(is.na(ids))
-KIDNEY_mRNA3       <- KIDNEY_mRNA2[,-na.ids]
-KIDNEY_Methy3      <- KIDNEY_Methy2[,-na.ids]
-OV_mRNA3       <- OV_mRNA2[,-na.ids]
-OV_Methy3      <- OV_Methy2[,-na.ids]
+
+if(length(na.ids)>0){
+	KIDNEY_mRNA3       <- KIDNEY_mRNA2[,-na.ids]
+	KIDNEY_Methy3      <- KIDNEY_Methy2[,-na.ids]
+	OV_mRNA3       <- OV_mRNA2[,-na.ids]
+	OV_Methy3      <- OV_Methy2[,-na.ids]
+}else{
+	KIDNEY_mRNA3       <- KIDNEY_mRNA2
+	KIDNEY_Methy3      <- KIDNEY_Methy2
+	OV_mRNA3       	   <- OV_mRNA2
+	OV_Methy3          <- OV_Methy2
+}
 
 ALL_mRNA  <- rbind(KIDNEY_mRNA3, OV_mRNA3)
 ALL_Methy <- rbind(KIDNEY_Methy3, OV_Methy3)
@@ -50,8 +58,8 @@ TARGET <- numeric(dim(KIDNEY_mRNA3)[1]+dim(OV_mRNA3)[1])
 TARGET[1:dim(KIDNEY_mRNA3)[1]] <- 1
 names(TARGET) <- rownames(ALL_mRNA)
 
-write.table(ALL_mRNA,     file="KIDNEY_OV_mRNA_FEATURES.txt")
-write.table(ALL_Methy,    file="KIDNEY_OV_Methy_FEATURES.txt")
-write.table(t(TARGET),  file="KIDNEY_OV_TARGET.txt")
-write.table(PPI2, file="KIDNEY_OV_PPI.txt")
+write.table(ALL_mRNA,     file="KIDNEY_RANDOM_mRNA_FEATURES.txt")
+write.table(ALL_Methy,    file="KIDNEY_RANDOM_Methy_FEATURES.txt")
+write.table(t(TARGET),  file="KIDNEY_RANDOM_TARGET.txt")
+write.table(PPI2, file="KIDNEY_RANDOM_PPI.txt")
 
