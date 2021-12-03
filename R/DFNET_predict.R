@@ -5,7 +5,8 @@ DFNET_predict <- function(DFNET_object, DFNET_graph, n.last.trees=NaN, tree.ID=N
   # retrieve full data
   dataset <- do.call(cbind, DFNET_graph[[2]])
   # leave only one target column
-  dataset <- dataset[, -which(colnames(dataset) == "target")[-1]]
+  n.mod   <- length(DFNET_graph[[2]]) 
+  dataset <- dataset[, -head(which(colnames(dataset) == "target"),n.mod-1)]
 
   pred <- data.frame()
 

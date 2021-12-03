@@ -145,31 +145,6 @@ p <- ggplot(df, aes(x = variable, y = importance)) +
 p
 
 
-# join mm features into node importance
-variable_count <- dim(sv)[2]/2
-sv_join <- sv[,1:variable_count] + sv[,(variable_count+1):(2*variable_count)]
-colnames(sv_join) <- as.numeric(lapply(
-  strsplit(colnames(sv_join), "_"), function(x) ifelse(length(x[-1]) == 0, NA, x[-1])
-))
-global_sv_joined <- colMeans(abs(sv_join))
-names(global_sv_joined) <- dfnet$DFNET_graph$gene.names[-length(dfnet$DFNET_graph$gene.names)]
-df_joined <- data.frame(
-  variable = factor(names(global_sv_joined)),
-  importance = as.vector(global_sv_joined)
-)
-df_joined$variable <- reorder(df_joined$variable, df_joined$importance)
-df_joined <- df_joined[order(df_joined$importance, decreasing = TRUE)[1:20], ]
-
-p_joined <- ggplot(df_joined, aes(x = variable, y = importance)) +
-  geom_bar(stat = "identity", fill = colors_discrete_drwhy(1)) +
-  coord_flip() +
-  theme_drwhy_vertical() +
-  ylab("mean(|SHAP_A + SHAP_B|)") + xlab("") +
-  labs(title = "Node Importance") +
-  scale_y_continuous(labels = scales::comma) +
-  theme(legend.position = "none")
-p_joined
-
 
 # local explanation
 treeshap::plot_contribution(forest_shap, 1)
