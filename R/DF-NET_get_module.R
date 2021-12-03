@@ -49,7 +49,7 @@ RES <- cbind(FINAL_MODULE_EDGE_IMP, FINAL_EDGE_IMP )
 
 # In case edges are dublicated !?
 RES <- unique(RES)
-colnames(RES) <- c("GENE","GENE","EDGE_IMP") 
+colnames(RES) <- c("Node1","Node2","EDGE_IMP") 
 return(as.data.frame(RES))
 
 }

@@ -50,6 +50,7 @@ RES <- cbind(FINAL_MODULE_EDGE_IMP, FINAL_EDGE_IMP )
 # In case edges are dublicated !?
 RES <- unique(RES)
 
+# Plots
 del <- seq(1,length(FINAL_EDGE_IMP), by = 2)
 
 g <- induced.subgraph(DFNET_graph[[1]], vertices)
