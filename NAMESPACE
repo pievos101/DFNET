@@ -16,4 +16,6 @@ export(DFNET_get_module)
 export(DFNET_predict)
 export(DFNET_performance)
 export(DFNET_preprocess)
+export(DFNET_explain)
+
 
