@@ -156,7 +156,7 @@ converge <- rep(FALSE, N.trees)
 
 for(xx in 1:ITER){
 
-cat(xx, " of ", ITER, "\n")
+cat(xx, " of ", ITER, " greedy steps \n")
 
 #if(ITER%%10==0){converge <- rep(FALSE, N.trees)}
 #WALK.DEPTH_OLD <- WALK.DEPTH

@@ -25,9 +25,14 @@ DFNET_predict <- function(DFNET_object, DFNET_graph, n.last.trees=NaN, tree.ID=N
   }
   
   
-  # Predict
+  # Predict 
+  pred  <- matrix(NaN, length(DECISION_TREES_ALL), dim(dataset)[1])
+  count <- 1
   for (tree in DECISION_TREES_ALL) {
-    pred <- rbind(pred, predict(tree, dataset)$predictions)
+    #pred <- rbind(pred, predict(tree, dataset)$predictions)
+    cat(count, " of ", length(DECISION_TREES_ALL) , " trees \n")
+    pred[count,] <- predict(tree, dataset)$predictions
+    count <- count + 1
   }
   
   val <- apply(pred, 2, function(x){
