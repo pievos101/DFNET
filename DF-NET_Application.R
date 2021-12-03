@@ -115,6 +115,12 @@ DFNET_perf_best <- DFNET_performance(DFNET_pred_best, TARGET2[test_ids])
 
 DFNET_perf_best
 
+# TREE SHAP
+require(treeshap)
+forest_shap <- DFNET_explain(DFNET_object, DFNET_graph_test)
+sv <- forest_shap$shaps
+
+
 
 # Generate some plots
 
