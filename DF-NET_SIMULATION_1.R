@@ -1,12 +1,12 @@
 # 
 # Random Forests on Graphs
 #
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
 source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_MM.R")
 source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_SM.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
+#source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
 
 N.Nodes        <- 20
 

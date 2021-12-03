@@ -1,9 +1,9 @@
 #For linkedOmics data
 #Create Feature Matrices
 
-Methy <- read.table("Human__TCGA_LUAD__JHU_USC__Methylation__Meth450__01_28_2016__BI__Gene__Firehose_Methylation_Prepocessor.cct", sep="\t", header=TRUE)
-mRNA  <- read.table("Human__TCGA_LUAD__UNC__RNAseq__HiSeq_RNA__01_28_2016__BI__Gene__Firehose_RSEM_log2.cct", sep="\t", header=TRUE)
-Mut   <- read.table("Human__TCGA_LUAD__WUSM__Mutation__GAIIx__01_28_2016__BI__Gene__Firehose_MutSig2CV.cbt", sep="\t", header=TRUE)
+Methy <- read.table("Human__TCGA_OV__JHU_USC__Methylation__Meth450__01_28_2016__BI__Gene__Firehose_Methylation_Prepocessor.cct", sep="\t", header=TRUE)
+mRNA  <- read.table("Human__TCGA_OV__UNC__RNAseq__HiSeq_RNA__01_28_2016__BI__Gene__Firehose_RSEM_log2.cct", sep="\t", header=TRUE)
+#Mut   <- read.table("Human__TCGA_OV__WUSM__Mutation__GAIIx__01_28_2016__BI__Gene__Firehose_MutSig2CV.cbt", sep="\t", header=TRUE)
 
 # Methylation
 Methy_genes <- Methy[,1]
@@ -20,20 +20,22 @@ colnames(mRNA) <- mRNA_genes
 mRNA_patients  <- rownames(mRNA)
 
 # Mutation (SNV)
-Mut_genes <- Mut[,1]
-Mut <- Mut[,-1]
-Mut <- t(Mut)
-colnames(Mut) <- Mut_genes
-Mut_patients  <- rownames(Mut)
+#Mut_genes <- Mut[,1]
+#Mut <- Mut[,-1]
+#Mut <- t(Mut)
+#colnames(Mut) <- Mut_genes
+#Mut_patients  <- rownames(Mut)
 
 
 #Harmonize Multi-Omics data
-common_genes    <- intersect(intersect(Methy_genes, mRNA_genes), Mut_genes)
-common_patients <- intersect(intersect(Methy_patients, mRNA_patients), Mut_patients)
+common_genes    <- intersect(Methy_genes, mRNA_genes)
+common_patients <- intersect(Methy_patients, mRNA_patients)
+#common_genes    <- intersect(intersect(Methy_genes, mRNA_genes), Mut_genes)
+#common_patients <- intersect(intersect(Methy_patients, mRNA_patients), Mut_patients)
 
 mRNA2  <- mRNA[common_patients,common_genes]
 Methy2 <- Methy[common_patients,common_genes]
-Mut2   <- Mut[common_patients,common_genes]
+#Mut2   <- Mut[common_patients,common_genes]
 
 # READ IN THE PPI
 PPI <- read.table("~/RF-on-Graphs-Project/Application/PPI_processed2.txt")
@@ -56,10 +58,10 @@ ids         <- match(common_genes, PPI_genes)
 na.ids      <- which(is.na(ids))
 mRNA3       <- mRNA2[,-na.ids]
 Methy3      <- Methy2[,-na.ids]
-Mut3        <- Mut2[, -na.ids]
+#Mut3        <- Mut2[, -na.ids]
 
 # READ IN MEDICAL SURVIVAL DATA
-CLIN <- read.table("Human__TCGA_LUAD__MS__Clinical__Clinical__01_28_2016__BI__Clinical__Firehose.tsi.txt", sep="\t", header=TRUE)
+CLIN <- read.table("Human__TCGA_OV__MS__Clinical__Clinical__01_28_2016__BI__Clinical__Firehose.tsi.txt", sep="\t", header=TRUE)
 
 status_id <- which(CLIN[,1]=="status")
 survival <- CLIN[status_id,-1]
@@ -74,6 +76,14 @@ del.ids      <- match(del.patients, rownames(mRNA3))
 # These are the final objects
 mRNA4        <- mRNA3[-del.ids,]
 Methy4       <- Methy3[-del.ids,]
-Mut4         <- Mut3[-del.ids,]
+#Mut4         <- Mut3[-del.ids,]
 SURVIVAL     <- survival_final[-na.ids]
 PPI_FINAL    <- PPI2
+
+
+write.table(mRNA4,     file="OV_mRNA_FEATURES.txt")
+write.table(Methy4,    file="OV_Methy_FEATURES.txt")
+#write.table(Mut4,      file="BRCA_Mut_FEATURES.txt")
+write.table(SURVIVAL,  file="OV_SURVIVAL.txt")
+write.table(PPI_FINAL, file="OV_PPI.txt")
+
