@@ -39,7 +39,7 @@ for (xx in na.ids){
 #-----------------------------
 
 # DFNET - START SIMULATIONS ----------------------------- #
-N.SIM  <- 20
+N.SIM  <- 10
 
 DFNET_RESULT <- matrix(NaN, N.SIM, 5)
 colnames(DFNET_RESULT) <- c("Sensitivity","Specificity",
@@ -92,13 +92,13 @@ for(sim in 1:N.SIM){
 
 
     # DFNET ------------------------------------ #
-    DFNET_object <- DFNET(DFNET_graph_train, ntrees=1000, niter=10, init.mtry=15)
+    DFNET_object <- DFNET(DFNET_graph_train, ntrees=500, niter=50, init.mtry=20)
 
     # PREDICTION
-    DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
+    DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test, n.last.trees=500)
 
     # PERFORMANCE
-    DFNET_perf   <- DFNET_performance(DFNET_pred, TARGET2[test_ids])
+    DFNET_perf   <- DFNET_performance(DFNET_pred, as.factor(DFNET_graph_test$Feature_Matrix[[1]][,"target"]))
 
     #DFNET_perf$byClass
     DFNET_RESULT[sim,1] <- DFNET_perf$byClass["Sensitivity"]
@@ -123,8 +123,8 @@ print(DFNET_RESULT)
                     data = TRAIN_DATASET, # MM DATA
                     classification = TRUE, 
                     importance = "impurity", 
-                    num.trees = 1000, 
-                    mtry = 15,
+                    num.trees = 500, 
+                    mtry = 20,
                     replace = TRUE) 
 
     
@@ -132,10 +132,10 @@ print(DFNET_RESULT)
     # TEST
     dataset1 <- DFNET_graph_test$Feature_Matrix[[1]]
     dataset2 <- DFNET_graph_test$Feature_Matrix[[2]]
-    dataset3 <- DFNET_graph_test$Feature_Matrix[[3]]
+    #dataset3 <- DFNET_graph_test$Feature_Matrix[[3]]
     
-    DATASETX      <- cbind(dataset1, dataset2, dataset3)
-    TEST_DATASET  <- DATASETX[, -which(colnames(DATASETX) == "target")[-c(1,2)]]
+    DATASETX      <- cbind(dataset1, dataset2)
+    TEST_DATASET  <- DATASETX[, -which(colnames(DATASETX) == "target")[-c(1)]]
     
     pp    <- predict(vanilla_rf, TEST_DATASET)
     pred  <- pp$predictions

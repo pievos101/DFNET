@@ -25,13 +25,11 @@ EDGE_IMP <- vector("list", dim(EDGELIST)[1])
 
 for (xx in 1:dim(EDGELIST)[1]){
 
-#cat(xx, " of ", dim(EDGELIST)[1], " edges \n")
-if (xx %% 1000 == 0) cat(xx, " of ", dim(EDGELIST)[1], " edges \n")
+ if (xx %% 1000 == 0) cat(xx, " of ", dim(EDGELIST)[1], " edges \n")
 
-edge <- paste("N_", EDGELIST[xx,], sep="")
+ edge <- paste("N_", EDGELIST[xx,], sep="")
 
 	for(yy in 1:length(DECISION_TREES_ALL)){
-     #for(yy in 10000:length(DECISION_TREES_ALL)){
 
 	     	Vimp <- names(DECISION_TREES_ALL[[yy]]$variable.importance)
 	     	#print(Vimp)
@@ -39,15 +37,15 @@ edge <- paste("N_", EDGELIST[xx,], sep="")
 	     	if(MultiModalData){
 	     	 Vimp_names <- substring(Vimp,2)	
 	     	}else{
-	           Vimp_names <- Vimp    
-	          }
+	         Vimp_names <- Vimp    
+	        }
 	     	
 	     	#print(edge)
 	     	#print(Vimp_names)
 	     	check <- match(edge,Vimp_names)
 			
 		if(all(!is.na(check))){
-			EDGE_IMP[[xx]] <- c(EDGE_IMP[[xx]],auc(target,DECISION_TREES_ALL[[yy]]$predictions, na.rm=TRUE, levels = c(0, 1), direction = "<")[1])
+			EDGE_IMP[[xx]] <- c(EDGE_IMP[[xx]], auc(target, DECISION_TREES_ALL[[yy]]$predictions, na.rm=TRUE, levels = c(0, 1), direction = "<")[1])
 		}
 	}
 } 

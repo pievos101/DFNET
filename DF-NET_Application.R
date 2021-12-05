@@ -82,13 +82,15 @@ table(TARGET2[test_ids])
 # init.mtry = 20
 
 # Perform DFNET
-DFNET_object <- DFNET(DFNET_graph_train, ntrees=10, niter=2, init.mtry=15)
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=500, niter=100, init.mtry=20)
+
+print(length(DFNET_object$DFNET_trees))
 
 # PREDICTION
 DFNET_pred   <- DFNET_predict(DFNET_object, DFNET_graph_test)
 
 # PERFORMANCE
-DFNET_perf   <- DFNET_performance(DFNET_pred, TARGET2[test_ids])
+DFNET_perf   <- DFNET_performance(DFNET_pred, as.factor(DFNET_graph_test$Feature_Matrix[[1]][,"target"]))
 
 DFNET_perf
 
@@ -111,7 +113,7 @@ DFNET_Fimp   <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph_t
 TREEID <- as.numeric(rownames(DFNET_mod)[1])
 
 DFNET_pred_best <- DFNET_predict(DFNET_object, DFNET_graph_test, tree.ID=TREEID)
-DFNET_perf_best <- DFNET_performance(DFNET_pred_best, TARGET2[test_ids])
+DFNET_perf_best <- DFNET_performance(DFNET_pred_best, as.factor(DFNET_graph_test$Feature_Matrix[[1]][,"target"]))
 
 DFNET_perf_best
 
@@ -119,7 +121,6 @@ DFNET_perf_best
 require(treeshap)
 forest_shap <- DFNET_explain(DFNET_object, DFNET_graph_test)
 sv <- forest_shap$shaps
-
 
 
 # Generate some plots
