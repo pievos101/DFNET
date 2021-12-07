@@ -123,7 +123,7 @@ print(DFNET_RESULT)
                     data = TRAIN_DATASET, # MM DATA
                     classification = TRUE, 
                     importance = "impurity", 
-                    num.trees = 500, 
+                    num.trees = 1000, 
                     mtry = 20,
                     replace = TRUE) 
 
@@ -141,6 +141,7 @@ print(DFNET_RESULT)
     pred  <- pp$predictions
 
     RF_perf <- DFNET_performance(as.factor(pred), as.factor(DFNET_graph_test$Feature_Matrix[[1]][,"target"]))
+    RF_perf$byClass
     RF_RESULT[sim,1] <- RF_perf$byClass["Sensitivity"]
     RF_RESULT[sim,2] <- RF_perf$byClass["Specificity"]
     RF_RESULT[sim,3] <- RF_perf$byClass["Precision"]

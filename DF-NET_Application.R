@@ -6,21 +6,25 @@ library(DFNET)
 
 ## PPI
 #PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
-PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
+#PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
+PPI      <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_PPI.txt")
 
 ## Features
 #mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
-mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
+#mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
+mRNA     <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_mRNA_FEATURES.txt")
 
 #Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
-Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
+#Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
+Methy    <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt")
 
 #Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
 
 # Outcome class
 #TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
-TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
+#TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
+TARGET   <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
 #@FIXME -- UGLY
 # Replace NANs with mean
 na.ids <- which(apply(Methy,2,function(x){any(is.na(x))}))
@@ -34,7 +38,7 @@ for (xx in na.ids){
 #-----------------------------
 
 # Read Data
-DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
+DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
 
 # Make data balanced -------------------------------------------- #
 TT        <- table(unlist(TARGET))

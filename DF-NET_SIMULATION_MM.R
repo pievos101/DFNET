@@ -23,8 +23,8 @@ while(length(DFNET_graph)==0){
 
 
 LOOPS          <- 50
-NITER          <- c(2, 5, 10, 20, 50, 100, 200, 300)
-#NITER          <- c(100, 200, 300)
+#NITER          <- c(2, 5, 10, 20, 50, 100, 200, 300)
+NITER          <- c(100, 200, 300)
 
 
 COVERAGE       <- matrix(NaN, LOOPS, length(NITER))

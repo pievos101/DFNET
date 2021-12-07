@@ -33,8 +33,9 @@ na.ids2 <- which(is.na(ids2))
 
 na.IDS  <- unique(c(na.ids1,na.ids2))
 
-NET     <- NET[-na.IDS,]
-
+if(length(na.IDS)>0){
+	NET     <- NET[-na.IDS,]
+}
 
 # HARMONIZE WITH THE PPI (2)
 PPI_genes   <- unique(c(NET[,1],NET[,2]))
@@ -44,10 +45,11 @@ na.ids      <- which(is.na(ids))
 #omic1       <- omic1[,-na.ids]
 #omic2       <- omic2[,-na.ids]
 
-for(xx in 1:length(OMICS)){
-	OMICS[[xx]] <- OMICS[[xx]][,-na.ids]
+if(length(na.ids)>0){
+	for(xx in 1:length(OMICS)){
+		OMICS[[xx]] <- OMICS[[xx]][,-na.ids]
+	}
 }
-
 
 if(!is.na(cut.off)){
 
