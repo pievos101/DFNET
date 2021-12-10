@@ -120,7 +120,7 @@ print(DFNET_RESULT)
     TRAIN_DATASET  <- DATASETX[, -which(colnames(DATASETX) == "target")[-c(1)]]
     
     vanilla_rf  <-  ranger(dependent.variable.name = "target",
-                    data = TRAIN_DATASET, # MM DATA
+                    data = TRAIN_DATASET, #TRAIN_DATASET[,c(rf_var[1:20],"target")], # MM DATA
                     classification = TRUE, 
                     importance = "impurity", 
                     num.trees = 1000, 
@@ -142,6 +142,7 @@ print(DFNET_RESULT)
 
     RF_perf <- DFNET_performance(as.factor(pred), as.factor(DFNET_graph_test$Feature_Matrix[[1]][,"target"]))
     RF_perf$byClass
+
     RF_RESULT[sim,1] <- RF_perf$byClass["Sensitivity"]
     RF_RESULT[sim,2] <- RF_perf$byClass["Specificity"]
     RF_RESULT[sim,3] <- RF_perf$byClass["Precision"]
