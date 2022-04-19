@@ -38,7 +38,7 @@ if(length(na.IDS)>0){
 }
 
 # HARMONIZE WITH THE PPI (2)
-PPI_genes   <- unique(c(NET[,1],NET[,2]))
+PPI_genes   <- unique(c(as.character(NET[,1]),as.character(NET[,2])))
 ids         <- match(common_genes, PPI_genes)
 na.ids      <- which(is.na(ids))
 
@@ -58,7 +58,7 @@ if(!is.na(cut.off)){
 
 	# Renew data accordingly
 	NET    <- NET[ids,]
-	PPI_genes <- unique(c(NET[,1],NET[,2]))
+	PPI_genes <- unique(c(as.character(NET[,1]),as.character(NET[,2])))
 	ids    <- match(colnames(OMICS[[1]]), PPI_genes)
 	na.ids <- which(is.na(ids))  
 	#omic1  <- omic1[,-na.ids]
