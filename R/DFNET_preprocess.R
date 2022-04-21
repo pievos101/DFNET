@@ -1,7 +1,7 @@
-DFNET_preprocess <- function(DFNET_graph){
-	
 
-	range01         <- function(x){
+DFNET_preprocess <- function(DFNET_graph){
+		
+	range01      <- function(x){
 
 		res <- (x-min(x, na.rm=TRUE))/(max(x, na.rm=TRUE)-min(x, na.rm=TRUE))
 		if(is.infinite(res[1]) || is.na(res[1])){
@@ -21,6 +21,6 @@ DFNET_preprocess <- function(DFNET_graph){
 	}
 
 DFNET_graph$Feature_Matrix <- FEAT
-
 return(DFNET_graph)
+
 }

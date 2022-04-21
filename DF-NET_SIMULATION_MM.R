@@ -3,11 +3,11 @@
 #
 library(DFNET)
 #source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_main.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_generate_Graph_MM.R")
+source("~/GitHub/DFNET/DF-NET_generate_Graph_MM.R")
 #source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_accuracy.R")
 #source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_modules.R")
 #source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_Edge_Importance.R")
-source("~/GitLab/rf-feature-selection-on-graphs/DF-NET_load_Graph_MM.R")
+source("~/GitLab/DFNET/DF-NET_load_Graph_MM.R")
 
 
 N.Nodes        <- 50	#25 #50 #75 #100 
@@ -51,15 +51,15 @@ cat(xx, " of ", length(NITER), "done! ---------------- \n")
   DFNET_Eimp     <- DFNET_Edge_Importance(DFNET_graph, DFNET_object)
 
   DFNET_mod      <- DFNET_modules(DFNET_graph, DFNET_object, DFNET_Eimp)
-  DFNET_mod
+  #print(DFNET_mod)
 
-  bm             <- as.numeric(strsplit(DFNET_mod[1,1]," ")[[1]])
+  bm             <- as.numeric(strsplit(as.character(DFNET_mod[1,1])," ")[[1]])
   sm             <- DFNET_graph$Selected_Module
   
   print(bm)
   print(sm)
  
-  print(DFNET_mod)
+  #print(DFNET_mod)
 
   COVERAGE[yy,xx]    <- as.numeric(identical(bm,sm))
   #AUC[yy,xx]		 <- DFNET_acc

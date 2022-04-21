@@ -31,7 +31,9 @@ DFNET_predict <- function(DFNET_object, DFNET_graph, n.last.trees=NaN, tree.ID=N
   count <- 1
   for (tree in DECISION_TREES_ALL) {
     #pred <- rbind(pred, predict(tree, dataset)$predictions)
-    cat(count, " of ", length(DECISION_TREES_ALL) , " trees \n")
+    if (count %% 100 == 0){
+      cat(count, " of ", length(DECISION_TREES_ALL) , " trees \n")
+    }
     pred[count,] <- predict(tree, dataset)$predictions
     count <- count + 1
   }
