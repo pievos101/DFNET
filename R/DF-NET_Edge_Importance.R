@@ -45,15 +45,16 @@ for (xx in 1:length(TREE_VARS)){
 
   vars <- TREE_VARS[[xx]]
   res  <- mclapply(EDGELIST_LIST,
-  	function(x){all(is.element(x,vars))}, mc.cores=detectCores()-1)
+  	function(x){all(is.element(x,vars))}, mc.cores=detectCores()-2)
   res <- unlist(res)
 
   EDGE_IMP[res] <- EDGE_IMP[res] + TREE_AUCS[xx] 
-
-}}
+}
+} # if parallel
 
 if(!parallel){
 
+# VERSION 1 ###################
 for (xx in 1:length(TREE_VARS)){
 
   if (xx %% 100 == 0) cat(xx, " of ", length(TREE_VARS), " trees \n")
@@ -61,8 +62,21 @@ for (xx in 1:length(TREE_VARS)){
   vars <- TREE_VARS[[xx]]
   res  <- apply(EDGELIST,1,function(x){all(is.element(x,vars))})
   EDGE_IMP[res] <- EDGE_IMP[res] + TREE_AUCS[xx] 
+}
+################################
 
-}}
+# VERSION 2 #####################
+#for (xx in 1:length(EDGELIST)){
+
+#	if (xx %% 1000 == 0) cat(xx, " of ", length(EDGELIST), " edges \n")
+#	edge <- EDGELIST[[xx]]
+
+#	res <- sapply(TREE_VARS, function(x){all(is.element(edge,x))})
+#	EDGE_IMP[xx] <- sum(TREE_AUCS[res])
+#}
+#################################
+
+}# if not parallel
 
 
 EDGE_IMP_FINAL <- range01(EDGE_IMP)

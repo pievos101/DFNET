@@ -38,7 +38,7 @@ for (xx in na.ids){
 #-----------------------------
 
 # Read Data
-DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.95)
+DFNET_graph  <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
 
 # Make data balanced -------------------------------------------- #
 TT        <- table(unlist(TARGET))
@@ -86,7 +86,7 @@ table(TARGET2[test_ids])
 # init.mtry = 20
 
 # Perform DFNET
-DFNET_object <- DFNET(DFNET_graph_train, ntrees=500, niter=10, init.mtry=20)
+DFNET_object <- DFNET(DFNET_graph_train, ntrees=50, niter=10, init.mtry=20)
 
 print(length(DFNET_object$DFNET_trees))
 
