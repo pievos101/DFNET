@@ -41,5 +41,5 @@ DFNET_generate_graph_SM <- function(N.Nodes = 30, power = 1.2, n.samples = 1000)
     colnames(IN) <- c(paste("N_", 1:N.Nodes, sep = ""), "target")
 
 
-    return(list(graph = g, Feature_Matrix = IN, Selected_Module = c(node1, node2, node3, node4)))
+    return(list(graph = g, feature.matrix = IN, Selected_Module = c(node1, node2, node3, node4)))
 }

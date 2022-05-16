@@ -68,8 +68,8 @@ for (sim in 1:N.SIM) {
 
     TARGET2 <- unlist(TARGET)[c(ids1, ids2)]
 
-    for (xx in 1:length(DFNET_graph$Feature_Matrix)) {
-        DFNET_graph$Feature_Matrix[[xx]] <- DFNET_graph$Feature_Matrix[[xx]][c(ids1, ids2), ]
+    for (xx in 1:length(DFNET_graph$feature.matrix)) {
+        DFNET_graph$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][c(ids1, ids2), ]
     }
     # ---------------------------------------- #
 
@@ -79,18 +79,18 @@ for (sim in 1:N.SIM) {
     # Create TRAIN set ----------------------------------- #
     DFNET_graph_train <- DFNET_graph
     ## 80% of the sample size
-    smp_size <- floor(0.80 * nrow(DFNET_graph$Feature_Matrix[[1]]))
-    train_ids <- sample(seq_len(nrow(DFNET_graph$Feature_Matrix[[1]])), size = smp_size)
-    for (xx in 1:length(DFNET_graph_train$Feature_Matrix)) {
-        DFNET_graph_train$Feature_Matrix[[xx]] <- DFNET_graph$Feature_Matrix[[xx]][train_ids, ]
+    smp_size <- floor(0.80 * nrow(DFNET_graph$feature.matrix[[1]]))
+    train_ids <- sample(seq_len(nrow(DFNET_graph$feature.matrix[[1]])), size = smp_size)
+    for (xx in 1:length(DFNET_graph_train$feature.matrix)) {
+        DFNET_graph_train$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][train_ids, ]
     }
     table(TARGET2[train_ids])
 
     # Create TEST set ------------------------------------ #
     DFNET_graph_test <- DFNET_graph
-    test_ids <- (1:nrow(DFNET_graph$Feature_Matrix[[1]]))[-train_ids]
-    for (xx in 1:length(DFNET_graph_test$Feature_Matrix)) {
-        DFNET_graph_test$Feature_Matrix[[xx]] <- DFNET_graph$Feature_Matrix[[xx]][test_ids, ]
+    test_ids <- (1:nrow(DFNET_graph$feature.matrix[[1]]))[-train_ids]
+    for (xx in 1:length(DFNET_graph_test$feature.matrix)) {
+        DFNET_graph_test$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][test_ids, ]
     }
     table(TARGET2[test_ids])
 
@@ -102,7 +102,7 @@ for (sim in 1:N.SIM) {
     DFNET_pred <- DFNET_predict(DFNET_object, DFNET_graph_test, n.last.trees = 500)
 
     # PERFORMANCE
-    DFNET_perf <- DFNET_performance(DFNET_pred, as.factor(DFNET_graph_test$Feature_Matrix[[1]][, "target"]))
+    DFNET_perf <- DFNET_performance(DFNET_pred, as.factor(DFNET_graph_test$feature.matrix[[1]][, "target"]))
 
     # DFNET_perf$byClass
     DFNET_RESULT[sim, 1] <- DFNET_perf$byClass["Sensitivity"]
@@ -116,11 +116,11 @@ for (sim in 1:N.SIM) {
 
     # Vanilla RF
     # TRAIN
-    # dataset1 <- DFNET_graph_train$Feature_Matrix[[1]]
-    # dataset2 <- DFNET_graph_train$Feature_Matrix[[2]]
-    # dataset3 <- DFNET_graph_train$Feature_Matrix[[3]]
+    # dataset1 <- DFNET_graph_train$feature.matrix[[1]]
+    # dataset2 <- DFNET_graph_train$feature.matrix[[2]]
+    # dataset3 <- DFNET_graph_train$feature.matrix[[3]]
 
-    DATASETX <- do.call(cbind, DFNET_graph_train$Feature_Matrix)
+    DATASETX <- do.call(cbind, DFNET_graph_train$feature.matrix)
     TRAIN_DATASET <- DATASETX[, -which(colnames(DATASETX) == "target")[-c(1)]]
 
     vanilla_rf <- ranger(
@@ -136,9 +136,9 @@ for (sim in 1:N.SIM) {
 
     # Vanilla RF
     # TEST
-    dataset1 <- DFNET_graph_test$Feature_Matrix[[1]]
-    dataset2 <- DFNET_graph_test$Feature_Matrix[[2]]
-    # dataset3 <- DFNET_graph_test$Feature_Matrix[[3]]
+    dataset1 <- DFNET_graph_test$feature.matrix[[1]]
+    dataset2 <- DFNET_graph_test$feature.matrix[[2]]
+    # dataset3 <- DFNET_graph_test$feature.matrix[[3]]
 
     DATASETX <- cbind(dataset1, dataset2)
     TEST_DATASET <- DATASETX[, -which(colnames(DATASETX) == "target")[-c(1)]]
@@ -146,7 +146,7 @@ for (sim in 1:N.SIM) {
     pp <- predict(vanilla_rf, TEST_DATASET)
     pred <- pp$predictions
 
-    RF_perf <- DFNET_performance(as.factor(pred), as.factor(DFNET_graph_test$Feature_Matrix[[1]][, "target"]))
+    RF_perf <- DFNET_performance(as.factor(pred), as.factor(DFNET_graph_test$feature.matrix[[1]][, "target"]))
     RF_perf$byClass
 
     RF_RESULT[sim, 1] <- RF_perf$byClass["Sensitivity"]

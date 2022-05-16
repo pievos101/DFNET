@@ -77,7 +77,7 @@ DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
     }
 
 
-    gene.names <- colnames(OMICS[[1]])
+    feature.names <- colnames(OMICS[[1]])
 
     for (xx in 1:length(OMICS)) {
         colnames(OMICS[[xx]]) <- c(paste(LETTERS[xx], "N_", 1:N.Nodes, sep = ""), "target")
@@ -89,7 +89,7 @@ DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
     g <- graph_from_edgelist(as.matrix(NET[, 1:2]), directed = FALSE)
 
 
-    return(list(graph = g, Feature_Matrix = IN, gene.names = gene.names))
+    return(list(graph = g, feature.matrix = IN, feature.names = feature.names))
 }
 
 DFNET_generate_graph_Omics <- DFNET_generate_graph_omics

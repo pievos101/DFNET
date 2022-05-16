@@ -8,18 +8,18 @@
 #' \dontrun{
 #' training_graph <- graph
 #' test_graph <- graph
-#' smp_size <- floor(0.80 * nrow(graph$Feature_Matrix[[1]]))
-#' train_ids <- sample(seq_len(nrow(graph$Feature_Matrix[[1]])),
+#' smp_size <- floor(0.80 * nrow(graph$feature.matrix[[1]]))
+#' train_ids <- sample(seq_len(nrow(graph$feature.matrix[[1]])),
 #'     size = smp_size
 #' )
-#' test_ids <- (1:nrow(graph$Feature_Matrix[[1]]))[-train_ids]
-#' for (xx in 1:length(training_graph$Feature_Matrix)) {
-#'     training_graph$Feature_Matrix[[xx]] <-
-#'         graph$Feature_Matrix[[xx]][train_ids, ]
+#' test_ids <- (1:nrow(graph$feature.matrix[[1]]))[-train_ids]
+#' for (xx in 1:length(training_graph$feature.matrix)) {
+#'     training_graph$feature.matrix[[xx]] <-
+#'         graph$feature.matrix[[xx]][train_ids, ]
 #' }
-#' for (xx in 1:length(testing_graph$Feature_Matrix)) {
-#'     training_graph$Feature_Matrix[[xx]] <-
-#'         graph$Feature_Matrix[[xx]][test_ids, ]
+#' for (xx in 1:length(testing_graph$feature.matrix)) {
+#'     training_graph$feature.matrix[[xx]] <-
+#'         graph$feature.matrix[[xx]][test_ids, ]
 #' }
 #' classifier <- DFNET(training_graph)
 #' prediction <- DFNET_predict(classifier, test_graph)

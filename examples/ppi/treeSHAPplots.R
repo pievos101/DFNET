@@ -10,7 +10,7 @@ global_sv <- colMeans(abs(sv))
 
 # convert to gene names
 NN <- names(global_sv)
-gene_names <- DFNET_graph_test$gene.names
+gene_names <- DFNET_graph_test$feature.names
 NN2 <- strsplit(NN, "_")
 NN3 <- sapply(NN2, function(x) {
     return(x[1])
@@ -43,7 +43,7 @@ colnames(sv_join) <- as.numeric(lapply(
     strsplit(colnames(sv_join), "_"), function(x) ifelse(length(x[-1]) == 0, NA, x[-1])
 ))
 global_sv_joined <- colMeans(abs(sv_join))
-names(global_sv_joined) <- DFNET_graph_test$gene.names[-length(DFNET_graph_test$gene.names)]
+names(global_sv_joined) <- DFNET_graph_test$feature.names[-length(DFNET_graph_test$feature.names)]
 df_joined <- data.frame(
     variable = factor(names(global_sv_joined)),
     importance = as.vector(global_sv_joined)

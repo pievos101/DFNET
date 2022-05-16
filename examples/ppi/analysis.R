@@ -154,7 +154,7 @@ colnames(sv_join) <- as.numeric(lapply(
     strsplit(colnames(sv_join), "_"), function(x) ifelse(length(x[-1]) == 0, NA, x[-1])
 ))
 global_sv_joined <- colMeans(abs(sv_join))
-names(global_sv_joined) <- dfnet$DFNET_graph$gene.names[-length(dfnet$DFNET_graph$gene.names)]
+names(global_sv_joined) <- dfnet$DFNET_graph$feature.names[-length(dfnet$DFNET_graph$feature.names)]
 df_joined <- data.frame(
     variable = factor(names(global_sv_joined)),
     importance = as.vector(global_sv_joined)

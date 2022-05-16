@@ -11,13 +11,13 @@ DFNET_preprocess <- function(DFNET_graph) {
     }
 
 
-    FEAT <- DFNET_graph$Feature_Matrix
+    FEAT <- DFNET_graph$feature.matrix
 
     for (xx in 1:length(FEAT)) {
         FEAT[[xx]] <- as.data.frame(apply(FEAT[[xx]], 2, range01))
-        colnames(FEAT[[xx]]) <- colnames(DFNET_graph$Feature_Matrix[[xx]])
+        colnames(FEAT[[xx]]) <- colnames(DFNET_graph$feature.matrix[[xx]])
     }
 
-    DFNET_graph$Feature_Matrix <- FEAT
+    DFNET_graph$feature.matrix <- FEAT
     return(DFNET_graph)
 }

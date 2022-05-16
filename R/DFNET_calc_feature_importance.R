@@ -15,13 +15,13 @@
 #' fimp <- DFNET_calc_feature_importance(top_module_vertices, detector, graph)
 #' }
 DFNET_calc_feature_importance <- function(vertices, detector, graph) {
-    VERT <- vector("list", length(graph$Feature_Matrix))
-    for (xx in 1:length(graph$Feature_Matrix)) {
+    VERT <- vector("list", length(graph$feature.matrix))
+    for (xx in 1:length(graph$feature.matrix)) {
         VERT[[xx]] <- paste(LETTERS[xx], "N_", vertices, sep = "")
     }
 
-    SUMIMP <- vector("list", length(graph$Feature_Matrix))
-    COUNT <- vector("list", length(graph$Feature_Matrix))
+    SUMIMP <- vector("list", length(graph$feature.matrix))
+    COUNT <- vector("list", length(graph$feature.matrix))
 
     for (xx in 1:length(SUMIMP)) {
         SUMIMP[[xx]] <- numeric(length(vertices))
@@ -60,14 +60,14 @@ DFNET_calc_feature_importance <- function(vertices, detector, graph) {
     FEATURE_imp <- vector("list", length(SUMIMP))
     for (xx in 1:length(SUMIMP)) {
         FEATURE_imp[[xx]] <- SUMIMP[[xx]] / length(detector$DFNET_trees) # COUNT[[xx]]
-        names(FEATURE_imp[[xx]]) <- graph$gene.names[vertices]
+        names(FEATURE_imp[[xx]]) <- graph$feature.names[vertices]
     }
 
     # FEATURE1_imp <- SUMIMP1/COUNT1
     # FEATURE2_imp <- SUMIMP2/COUNT2
 
-    # names(FEATURE1_imp) <- graph$gene.names[vertices]
-    # names(FEATURE2_imp) <- graph$gene.names[vertices]
+    # names(FEATURE1_imp) <- graph$feature.names[vertices]
+    # names(FEATURE2_imp) <- graph$feature.names[vertices]
 
 
     RES <- Reduce(rbind, FEATURE_imp)

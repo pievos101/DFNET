@@ -7,7 +7,7 @@ DFNET_plot_module <- function(Nodes, DFNET_graph, DFNET_Eimp) {
     vertices <- Nodes
     # vertices <- as.numeric(strsplit(DFNET_mod[1,1]," ")[[1]])
 
-    module.genes <- DFNET_graph$gene.names[vertices]
+    module.genes <- DFNET_graph$feature.names[vertices]
 
     g <- induced.subgraph(DFNET_graph[[1]], vertices)
 
@@ -27,8 +27,8 @@ DFNET_plot_module <- function(Nodes, DFNET_graph, DFNET_Eimp) {
 
     MODULE_EDGELIST_SAVE <- EDGELIST[ids, ]
     MODULE_EDGELIST <- EDGELIST[ids, ]
-    MODULE_EDGELIST[, 1] <- DFNET_graph$gene.names[MODULE_EDGELIST_SAVE[, 1]]
-    MODULE_EDGELIST[, 2] <- DFNET_graph$gene.names[MODULE_EDGELIST_SAVE[, 2]]
+    MODULE_EDGELIST[, 1] <- DFNET_graph$feature.names[MODULE_EDGELIST_SAVE[, 1]]
+    MODULE_EDGELIST[, 2] <- DFNET_graph$feature.names[MODULE_EDGELIST_SAVE[, 2]]
 
     MODULE_EDGE_IMP <- cbind(MODULE_EDGELIST, DFNET_Eimp[ids])
 

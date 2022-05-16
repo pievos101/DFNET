@@ -52,8 +52,8 @@ ids2 <- which(unlist(TARGET) == class)
 
 TARGET2 <- unlist(TARGET)[c(ids1, ids2)]
 
-for (xx in 1:length(DFNET_graph$Feature_Matrix)) {
-    DFNET_graph$Feature_Matrix[[xx]] <- DFNET_graph$Feature_Matrix[[xx]][c(ids1, ids2), ]
+for (xx in 1:length(DFNET_graph$feature.matrix)) {
+    DFNET_graph$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][c(ids1, ids2), ]
 }
 # ---------------------------------------- #
 
@@ -64,18 +64,18 @@ DFNET_graph <- DFNET_preprocess(DFNET_graph)
 # Create TRAIN set ----------------------------------- #
 DFNET_graph_train <- DFNET_graph
 ## 80% of the sample size
-smp_size <- floor(0.80 * nrow(DFNET_graph$Feature_Matrix[[1]]))
-train_ids <- sample(seq_len(nrow(DFNET_graph$Feature_Matrix[[1]])), size = smp_size)
-for (xx in 1:length(DFNET_graph_train$Feature_Matrix)) {
-    DFNET_graph_train$Feature_Matrix[[xx]] <- DFNET_graph$Feature_Matrix[[xx]][train_ids, ]
+smp_size <- floor(0.80 * nrow(DFNET_graph$feature.matrix[[1]]))
+train_ids <- sample(seq_len(nrow(DFNET_graph$feature.matrix[[1]])), size = smp_size)
+for (xx in 1:length(DFNET_graph_train$feature.matrix)) {
+    DFNET_graph_train$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][train_ids, ]
 }
 table(TARGET2[train_ids])
 
 # Create TEST set ------------------------------------ #
 DFNET_graph_test <- DFNET_graph
-test_ids <- (1:nrow(DFNET_graph$Feature_Matrix[[1]]))[-train_ids]
-for (xx in 1:length(DFNET_graph_test$Feature_Matrix)) {
-    DFNET_graph_test$Feature_Matrix[[xx]] <- DFNET_graph$Feature_Matrix[[xx]][test_ids, ]
+test_ids <- (1:nrow(DFNET_graph$feature.matrix[[1]]))[-train_ids]
+for (xx in 1:length(DFNET_graph_test$feature.matrix)) {
+    DFNET_graph_test$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][test_ids, ]
 }
 table(TARGET2[test_ids])
 
@@ -94,7 +94,7 @@ print(length(DFNET_object$DFNET_trees))
 DFNET_pred <- DFNET_predict(DFNET_object, DFNET_graph_test)
 
 # PERFORMANCE
-DFNET_perf <- DFNET_performance(DFNET_pred, as.factor(DFNET_graph_test$Feature_Matrix[[1]][, "target"]))
+DFNET_perf <- DFNET_performance(DFNET_pred, as.factor(DFNET_graph_test$feature.matrix[[1]][, "target"]))
 
 DFNET_perf
 
@@ -117,7 +117,7 @@ DFNET_Fimp <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph_tra
 TREEID <- as.numeric(rownames(DFNET_mod)[1])
 
 DFNET_pred_best <- DFNET_predict(DFNET_object, DFNET_graph_test, tree.ID = TREEID)
-DFNET_perf_best <- DFNET_performance(DFNET_pred_best, as.factor(DFNET_graph_test$Feature_Matrix[[1]][, "target"]))
+DFNET_perf_best <- DFNET_performance(DFNET_pred_best, as.factor(DFNET_graph_test$feature.matrix[[1]][, "target"]))
 
 DFNET_perf_best
 

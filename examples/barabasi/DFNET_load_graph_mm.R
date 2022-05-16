@@ -38,5 +38,5 @@ DFNET_load_graph_MM <- function(N.Nodes = 30, power = 1.2, n.samples = 1000) {
 
     IN <- list(IN_a, IN_b)
 
-    return(list(graph = g, Feature_Matrix = IN, Selected_Module = c(node1, node2, node3, node4)))
+    return(list(graph = g, feature.matrix = IN, Selected_Module = c(node1, node2, node3, node4)))
 }
