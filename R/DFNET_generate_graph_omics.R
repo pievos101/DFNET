@@ -42,9 +42,6 @@ DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
     ids <- match(common_genes, PPI_genes)
     na.ids <- which(is.na(ids))
 
-    # omic1       <- omic1[,-na.ids]
-    # omic2       <- omic2[,-na.ids]
-
     if (length(na.ids) > 0) {
         for (xx in 1:length(OMICS)) {
             OMICS[[xx]] <- OMICS[[xx]][, -na.ids]
@@ -60,8 +57,6 @@ DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
         PPI_genes <- unique(c(as.character(NET[, 1]), as.character(NET[, 2])))
         ids <- match(colnames(OMICS[[1]]), PPI_genes)
         na.ids <- which(is.na(ids))
-        # omic1  <- omic1[,-na.ids]
-        # omic2  <- omic2[,-na.ids]
         for (xx in 1:length(OMICS)) {
             OMICS[[xx]] <- OMICS[[xx]][, -na.ids]
         }
@@ -77,9 +72,6 @@ DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
 
     N.Nodes <- dim(OMICS[[1]])[2]
 
-    # omic1           <- cbind(omic1, t(TARGET))
-    # omic2           <- cbind(omic2, t(TARGET))
-
     for (xx in 1:length(OMICS)) {
         OMICS[[xx]] <- cbind(OMICS[[xx]], t(TARGET))
     }
@@ -87,22 +79,12 @@ DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
 
     gene.names <- colnames(OMICS[[1]])
 
-    # colnames(omic1) <- c(paste("AN_", 1:N.Nodes, sep=""),"target")
-    # omic1           <- as.data.frame(omic1)
-    # colnames(omic2) <- c(paste("BN_", 1:N.Nodes, sep=""),"target")
-    # omic2           <- as.data.frame(omic2)
-
     for (xx in 1:length(OMICS)) {
         colnames(OMICS[[xx]]) <- c(paste(LETTERS[xx], "N_", 1:N.Nodes, sep = ""), "target")
     }
 
 
-    IN <- OMICS # list(omic1, omic2)
-
-    # remove NaNs from PPI --> no longer needed
-    # ids1 <- which(is.na(NET[,1]))
-    # ids2 <- which(is.na(NET[,2]))
-    # NET  <- NET[-c(ids1,ids2),]
+    IN <- OMICS
 
     g <- graph_from_edgelist(as.matrix(NET[, 1:2]), directed = FALSE)
 
