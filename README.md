@@ -14,6 +14,6 @@ library(devtools)
 
 install_github("pievos101/DFNET")
 
-# Usage
+## Usage
 See DFNET-Documentation.pdf
 https://github.com/pievos101/DFNET/blob/master/DFNET-Documentation.pdf
