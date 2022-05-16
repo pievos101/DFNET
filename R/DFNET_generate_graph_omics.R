@@ -1,13 +1,26 @@
-DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
-
-
-    # omic1 <- FEATURES[[1]]
-    # omic2 <- FEATURES[[2]]
-
-    OMICS <- FEATURES
+#' Annotate a graph with multi-omic data.
+#'
+#' @param network
+#' The graph to annotate as (weighted) edgelist.
+#' @param features
+#' The features (omics) to annotate the graph with as matrix.
+#' @param target
+#' The target feature as vector.
+#' @param cut.off
+#' The weight threshold below which edges within \code{network} are considered
+#' insignificant.
+#' @return a list of shape \code{(graph, feature.matrix, feature.names)},
+#' wherein \code{graph} and \code{feature.matrix} are reduced variants of
+#' \code{network} and \code{features} respectively, s.t. only nodes within the
+#' network that correspond to features and only features that correspond to
+#' nodes are kept.
+DFNET_generate_graph_omics <- function(network, features, target, cut.off = NaN) {
+    # @FIXME
+    # This procedure performs multiple cleaning steps, which should probably be
+    # extracted into their own functions.
+    NET <- network
+    OMICS <- features
     GENE_NAMES <- lapply(OMICS, colnames)
-
-    NET <- PPI
 
     # @FIXME
     # Something is wrong with read.table ...
@@ -73,7 +86,7 @@ DFNET_generate_graph_omics <- function(PPI, FEATURES, TARGET, cut.off = NaN) {
     N.Nodes <- dim(OMICS[[1]])[2]
 
     for (xx in 1:length(OMICS)) {
-        OMICS[[xx]] <- cbind(OMICS[[xx]], t(TARGET))
+        OMICS[[xx]] <- cbind(OMICS[[xx]], t(target))
     }
 
 
