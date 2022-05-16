@@ -1,318 +1,218 @@
-# Peform the novel module selection algorithm
-# library(ranger)
-# library(pROC)
-
-############################################################
-# new
-DFNET <- function(DFNET_graph, ntrees = 100, niter = 200, init.mtry = NaN) {
-    g <- DFNET_graph[[1]]
-    IN <- DFNET_graph[[2]] # its a list # MM DATA
-
-    # MM -- START
-    MultiModal <- !is.data.frame(IN)
-    if (MultiModal) {
-        target <- IN[[1]][, "target"] # MM DATA
-    } else {
-        target <- IN[, "target"]
+#' Use random forest algorithm to perform feature selection with respect to
+#' given modules.
+#'
+#' @param modules a list of modules (node vectors)
+#' @param features the features to train on
+#' @param mmt the multi-modal target vector as returned by
+#' \code{multi_modal_target(features)}
+#' @return a decision forest with one tree per module in modules
+DFNET_make_forest <- function(modules, features, mmt) {
+    if (missing(mmt)) {
+        mmt <- multi_modal_target(features)
     }
-    ## MM -- END
+    selected_nodes_weights <- lapply(modules, function(module) {
+        as.numeric(table(module))
+    })
+    target <- mmt$target
 
-    Nodes <- V(g)
-    N.Nodes <- length(Nodes)
+    lapply(1:length(modules), function(m) {
+        unique_nodes <- sort(unique(modules[[m]]))
+        unique_nodes_weights <- selected_nodes_weights[[m]]
+        weights <- unique_nodes_weights
 
-    SELECTED_NODES <- list()
-    SELECTED_NODES_WEIGHTS <- list()
-
-    if (is.na(init.mtry)) {
-        n.nodes.per.tree <- ceiling(sqrt(N.Nodes))
-    } else {
-        n.nodes.per.tree <- init.mtry
-    }
-
-    N.trees <- ntrees
-
-    # Sample Start Nodes for Random Walk
-    Start.Nodes <- sample(Nodes, N.trees, replace = TRUE)
-
-    count <- 1
-    for (xx in Start.Nodes) {
-        SELECTED_NODES[[count]] <- as.numeric(random_walk(g, xx, n.nodes.per.tree))
-
-        # Not optimal solution
-        while (length(SELECTED_NODES[[count]]) < n.nodes.per.tree) {
-            print("retry ..")
-            xx2 <- sample(Nodes, 1)
-            SELECTED_NODES[[count]] <- as.numeric(random_walk(g, xx2, n.nodes.per.tree))
-        }
-
-        SELECTED_NODES_WEIGHTS[[count]] <- as.numeric(table(SELECTED_NODES[[count]]))
-
-        count <- count + 1
-    }
-
-    # Create the TREES
-    DECISION_TREES <- list()
-
-    for (xx in 1:length(SELECTED_NODES)) {
-
-        # feature weights are sorted
-        UNIQUE_NODES <- sort(unique(SELECTED_NODES[[xx]]))
-        UNIQUE_NODES_WEIGHTS <- SELECTED_NODES_WEIGHTS[[xx]]
-        WEIGHTS <- UNIQUE_NODES_WEIGHTS
-
-        # START -- MM Data
-        # Collect the features from the MM space
-        if (MultiModal) {
-            MM_DATA <- IN[[1]][, UNIQUE_NODES]
-            # print("MM Data!")
-            for (mm in 2:length(IN)) {
-                MM_DATA <- cbind(MM_DATA, IN[[mm]][, UNIQUE_NODES])
-                WEIGHTS <- c(WEIGHTS, UNIQUE_NODES_WEIGHTS)
+        if (mmt$is.multi_modal) {
+            mm_data <- features[[1]][, unique_nodes]
+            for (column in 2:length(features)) {
+                mm_data <- cbind(mm_data, features[[column]][, unique_nodes])
+                weights <- c(weights, unique_nodes_weights)
             }
-
-            MM_DATA <- cbind(MM_DATA, target)
-            MM_DATA <- as.data.frame(MM_DATA)
         } else {
-            MM_DATA <- IN[, UNIQUE_NODES]
-            MM_DATA <- as.data.frame(cbind(MM_DATA, target))
+            mm_data <- features[, unique_nodes]
         }
-        # END -- MM Data
+        mm_data <- as.data.frame(cbind(mm_data, target))
 
-        # print(dim(MM_DATA))
-
-        # Peform Feature Selection
-        rf.sim <- ranger(
+        # Perform feature selection
+        ranger(
             dependent.variable.name = "target",
-            data = MM_DATA, # MM DATA
-            # data=IN[,c(SELECTED_NODES[[xx]], N.Nodes+1)],
-            split.select.weights = WEIGHTS / sum(WEIGHTS),
+            data = mm_data,
+            split.select.weights = weights / sum(weights),
             verbose = FALSE,
             classification = TRUE,
             importance = "impurity",
             num.trees = 1,
-            mtry = dim(MM_DATA)[2] - 1
-        ) # at each split consider all variables
-        # replace = TRUE)
+            mtry = dim(mm_data)[2] - 1,
+            replace = TRUE
+        )
+    })
+}
 
-        DECISION_TREES[[xx]] <- rf.sim
+#' Initialize the decision forest network.
+#'
+#' @param graph the graph to train the network on
+#' @param features the features to use for training
+#' @param ntrees how many trees should be generated in the initial step
+#' and each following iteration
+#' @param walk.depth how many nodes should be selected per tree.
+#' If not a number, \code{ceiling(sqrt(length(V(graph))))} will be used instead.
+#' @return a list of shape \code{(graph, features, walk.depth, trees,
+#' modules.nodes, modules.auc)}, where \code{graph} and \code{features} are
+#' as in the input, \code{walk.depth} is expanded to a vector with \code{ntrees}
+#' elements, \code{modules.nodes} are randomly selected modules,
+#' \code{trees} are decision trees learned for these nodes as per
+#' \code{DFNET_make_forest}, and \code{modules.auc} is the area under
+#' curve w.r.t. the "target" column of \code{features} for each tree in
+#' \code{trees}.
+DFNET_init <- function(graph, features, ntrees = 100, walk.depth = NaN) {
+    mmt <- multi_modal_target(features)
+
+    nodes <- V(graph)
+    n.nodes <- length(nodes)
+
+    if (is.na(walk.depth)) {
+        walk.depth <- ceiling(sqrt(n.nodes))
     }
+    walk.depth <- rep_len(walk.depth, ntrees)
 
-    # Calculate the Accuracy of the Graph Classifier
-    # Generate Outcome based on Majority Vote
-
-    PRED <- sapply(DECISION_TREES, function(x) {
-        x$predictions
-    })
-    AUC_PER_TREE <- apply(PRED, 2, function(x) {
-        auc(target, x, na.rm = TRUE, levels = c(0, 1), direction = "<")[1]
-    })
-    AUC_PER_TREE_01 <- relat(AUC_PER_TREE)
-
-
-    PRED_VEC <- apply(PRED, 1, function(x) {
-        sum(x == 1, na.rm = TRUE) - sum(x == 0, na.rm = TRUE)
-    })
-
-    PRED_VEC[PRED_VEC == 0] <- NaN
-    PRED_VEC[PRED_VEC < 0] <- 0
-    PRED_VEC[PRED_VEC > 0] <- 1
-
-    auc(target, PRED_VEC, na.rm = TRUE, levels = c(0, 1), direction = "<")
-
-    if (niter == 0) {
-        return(list(
-            DFNET_graph = DFNET_graph,
-            DFNET_trees = DECISION_TREES,
-            DFNET_MODULES = SELECTED_NODES,
-            DFNET_MODULES_AUC = AUC_PER_TREE
-        ))
-    }
-
-    ##################################################################
-    # NOW ITERATE - GREEDY STEP
-    ##################################################################
-
-    DECISION_TREES_ALL <- list()
-    DECISION_TREES_ALL <- DECISION_TREES
-    SELECTED_NODES_X <- SELECTED_NODES
-    SELECTED_NODES_X_OLD <- SELECTED_NODES_X
-    SELECTED_NODES_WEIGHTS <- list()
-
-    WALK.DEPTH <- rep(ceiling(n.nodes.per.tree), N.trees)
-    WALK.DEPTH_OLD <- WALK.DEPTH
-    # iter  <- 20
-
-    AUC_PER_TREE_01_OLD <- AUC_PER_TREE_01
-    AUC_PER_TREE_OLD <- AUC_PER_TREE
-
-
-    # while ( any(WALK.DEPTH > 2) ){
-    ITER <- niter
-    converge <- rep(FALSE, N.trees)
-
-    for (xx in 1:ITER) {
-        cat(xx, " of ", ITER, " greedy steps \n")
-
-        # if(ITER%%10==0){converge <- rep(FALSE, N.trees)}
-        # WALK.DEPTH_OLD <- WALK.DEPTH
-
-        # Sample
-        # print(AUC_PER_TREE_01)
-        ids_keep <- sample(1:length(AUC_PER_TREE_OLD), prob = AUC_PER_TREE_OLD, replace = TRUE)
-
-        SELECTED_NODES_X <- SELECTED_NODES_X_OLD[ids_keep]
-
-        WALK.DEPTH <- WALK.DEPTH_OLD[ids_keep]
-
-        # AUC_PER_TREE_01_OLD  <- AUC_PER_TREE_01_OLD[ids_keep]
-
-        # SELECTED_NODES_X_OLD <- SELECTED_NODES_X_OLD[ids_keep]
-
-        converge <- converge[ids_keep]
-
-        # print(AUC_PER_TREE_01)
-        # print(SELECTED_NODES_X)
-        # print(converge)
-        # print(WALK.DEPTH)
-
-        # Sample Start Nodes for Random Walk
-        Start.Nodes_X <- sapply(SELECTED_NODES_X, function(x) {
-            sample(x, 1)
-        })
-
-        count <- 1
-        for (xx in Start.Nodes_X) {
-
-            # print(xx)
-            # if(converge[xx]){
-            # SELECTED_NODES_X[[count]] <- SELECTED_NODES_X_OLD[[count]]
-            #   count <- count + 1
-            #   next
-            # }
-
-            SELECTED_NODES_X[[count]] <- as.numeric(random_walk(g, xx, WALK.DEPTH[count]))
-            SELECTED_NODES_WEIGHTS[[count]] <- as.numeric(table(SELECTED_NODES_X[[count]]))
-
-            count <- count + 1
-        }
-
-        # Create the TREES
-        DECISION_TREES_OLD <- tail(DECISION_TREES_ALL, ntrees)
-        DECISION_TREES <- list()
-
-        for (xx in 1:length(SELECTED_NODES_X)) {
-
-            # feature weights are sorted
-            UNIQUE_NODES <- sort(unique(SELECTED_NODES_X[[xx]]))
-            UNIQUE_NODES_WEIGHTS <- SELECTED_NODES_WEIGHTS[[xx]]
-            WEIGHTS <- UNIQUE_NODES_WEIGHTS
-
-            # if(converge[xx]){next}
-            # Peform Feature Selection
-
-            # START -- MM Data
-            # Collect the features from the MM space
-            if (MultiModal) {
-                MM_DATA <- IN[[1]][, UNIQUE_NODES]
-                # print("MM Data!")
-                for (mm in 2:length(IN)) {
-                    MM_DATA <- cbind(MM_DATA, IN[[mm]][, UNIQUE_NODES])
-                    WEIGHTS <- c(WEIGHTS, UNIQUE_NODES_WEIGHTS)
-                }
-
-                MM_DATA <- cbind(MM_DATA, target)
-                MM_DATA <- as.data.frame(MM_DATA)
-            } else {
-                MM_DATA <- IN[, UNIQUE_NODES]
-                MM_DATA <- as.data.frame(cbind(MM_DATA, target))
+    count <- 1
+    selected_nodes <- list()
+    repeat {
+        sampled.nodes <- sample(nodes, (ntrees + 1 - count), replace = TRUE)
+        for (sn in sampled.nodes) {
+            depth <- walk.depth[[count]]
+            selected_nodes[[count]] <- as.numeric(random_walk(graph, sn, depth))
+            # Pick only walks of maximal length
+            if (length(selected_nodes[[count]]) >= walk.depth[[count]]) {
+                count <- count + 1
             }
-            # END -- MM Data
-            rf.sim <- ranger(
-                dependent.variable.name = "target",
-                data = MM_DATA, # MM DATA
-                # data = IN[,c(SELECTED_NODES_X[[xx]], N.Nodes+1)],
-                split.select.weights = WEIGHTS / sum(WEIGHTS),
-                verbose = FALSE,
-                classification = TRUE,
-                importance = "impurity",
-                num.trees = 1,
-                mtry = dim(MM_DATA)[2] - 1, # at each split consider all variables
-                replace = TRUE
-            ) # crucial parameter!
-
-            DECISION_TREES[[xx]] <- rf.sim
         }
-
-        PRED <- sapply(DECISION_TREES, function(x) {
-            x$predictions
-        })
-        AUC_PER_TREE <- apply(PRED, 2, function(x) {
-            auc(target, x, na.rm = TRUE, levels = c(0, 1), direction = "<")[1]
-        })
-        # AUC_PER_TREE   <- relat(AUC_PER_TREE) #@FIXME
-
-        # print(AUC_PER_TREE)
-
-        ids_schrink <- which(AUC_PER_TREE >= AUC_PER_TREE_OLD)
-        ids_schrink_not <- which(AUC_PER_TREE < AUC_PER_TREE_OLD)
-
-        # save the run
-
-        # AUC_PER_TREE_01_OLD <- AUC_PER_TREE_01
-        if (length(ids_schrink) > 0) {
-            AUC_PER_TREE_OLD[ids_schrink] <- AUC_PER_TREE[ids_schrink]
-            SELECTED_NODES_X_OLD[ids_schrink] <- SELECTED_NODES_X[ids_schrink]
-            WALK.DEPTH_OLD[ids_schrink] <- WALK.DEPTH[ids_schrink] - 1
-            # hotfix
-            DECISION_TREES[ids_schrink] <- DECISION_TREES[ids_schrink]
+        if (count > ntrees) {
+            break
         }
-        if (length(ids_schrink_not) > 0) {
-            # ?
-            AUC_PER_TREE_OLD[ids_schrink_not] <- AUC_PER_TREE_OLD[ids_schrink_not]
-            SELECTED_NODES_X_OLD[ids_schrink_not] <- SELECTED_NODES_X_OLD[ids_schrink_not]
-            WALK.DEPTH_OLD[ids_schrink_not] <- WALK.DEPTH_OLD[ids_schrink_not]
-            # hotfix
-            DECISION_TREES[ids_schrink_not] <- DECISION_TREES_OLD[ids_schrink_not]
-            # DECISION_TREES[ids_schrink_not]       <- NULL
-        }
+    }
 
-        DECISION_TREES_ALL <- c(DECISION_TREES_ALL, DECISION_TREES)
-
-        # print(WALK.DEPTH_OLD)
-
-        # converge[ids_schrink]     <- FALSE
-        converge[ids_schrink_not] <- TRUE
-
-        WALK.DEPTH_OLD[WALK.DEPTH_OLD < 2] <- 2
-
-        # print(SELECTED_NODES_X_OLD)
-
-        # print(converge)
-
-        # if(all(converge==TRUE) & (ITER%%10==0)){
-        #    print("reset")
-        #   converge <- rep(FALSE, N.trees)
-        # }
-
-        # print(converge)
-
-        # if(all(WALK.DEPTH_OLD==WALK.DEPTH)){
-        #   print("EARLY STOP!")
-        #   break
-        # }
-
-        # if(all(converge)){
-        #   print("EARLY STOP!")
-        #   break
-        # }
-
-
-        # WALK.DEPTH_OLD <- WALK.DEPTH
-        # print(WALK.DEPTH)
-    } # End of for loop
+    decision_trees <- DFNET_make_forest(selected_nodes, features, mmt)
 
     return(list(
-        DFNET_graph = DFNET_graph, DFNET_trees = DECISION_TREES_ALL,
-        DFNET_MODULES = SELECTED_NODES_X_OLD, DFNET_MODULES_AUC = AUC_PER_TREE_OLD
+        graph = graph,
+        features = features,
+        walk.depth = walk.depth,
+        trees = decision_trees,
+        modules.nodes = selected_nodes,
+        modules.auc = auc_per_tree(decision_trees, mmt$target)
     ))
-} # End of function
+}
+
+#' Perform iterations on the decision forest network.
+#'
+#' @param state a state as generated by \code{DFNET_init} or
+#' \code{DFNET_iterate}.
+#' @param niter the number of iterations to run.
+#' @param offset an offset for the iteration count (used for logging only)
+#' @param min.walk_depth the minimal random walk depth in each iteration
+#' @return the updated state, see \code{DFNET_init} for its shape.
+#' @examples
+#' \dontrun{
+#' state <- DFNET_init(...)
+#' offset <- 0
+#' # we want to be "significantly" better than random guessing
+#' while (any(state$modules.auc < 0.6)) {
+#'     state <- DFNET_iterate(state, niter = 10)
+#'     offset <- offset + 10
+#' }
+#' }
+#'
+DFNET_iterate <- function(state, niter = 200, offset = 0, min.walk_depth = 2) {
+    features <- state$features
+    mmt <- multi_modal_target(features)
+
+    all.trees <- state$trees
+    old.walk_depth <- state$walk.depth
+    old.modules <- state$modules.nodes
+    old.auc <- state$modules.auc
+
+    # From DFNET_init we have one module per tree, let's keep this invariant
+    ntrees <- length(state$modules.nodes)
+
+    iter.min <- offset + 1
+    iter.max <- offset + niter
+    for (iter in iter.min:iter.max) {
+        # @FIXME: Use logger?
+        cat(iter, " of ", iter.max, "greedy steps\n")
+
+        ids_keep <- sample(1:length(old.auc), prob = old.auc, replace = TRUE)
+        kept_modules <- old.modules[ids_keep]
+        walk.depth <- old.walk_depth[ids_keep]
+
+        start_nodes <- sapply(kept_modules, function(module) {
+            sample(module, 1)
+        })
+
+        modules <- lapply(1:length(start_nodes), function(sn) {
+            as.numeric(random_walk(state$graph, start_nodes[sn], walk.depth[sn]))
+        })
+
+        old.trees <- tail(all.trees, ntrees)
+        trees <- DFNET_make_forest(modules, features, mmt)
+
+        modules.auc <- auc_per_tree(trees, mmt$target)
+
+        ids.shrink <- which(modules.auc >= old.auc)
+        ids.shrink_not <- which(modules.auc < old.auc)
+
+        if (length(ids.shrink) > 0) {
+            old.auc[ids.shrink] <- modules.auc[ids.shrink]
+            old.modules[ids.shrink] <- modules[ids.shrink]
+            old.walk_depth[ids.shrink] <- walk.depth[ids.shrink]
+            # hotfix
+            trees[ids.shrink] <- trees[ids.shrink]
+        }
+        if (length(ids.shrink_not) > 0) {
+            # @FIXME: does this need copying?
+            old.auc[ids.shrink_not] <- old.auc[ids.shrink_not]
+            old.modules[ids.shrink_not] <- old.modules[ids.shrink_not]
+            old.walk_depth[ids.shrink_not] <- old.walk_depth[ids.shrink_not]
+            # hotfix
+            trees[ids.shrink_not] <- old.trees[ids.shrink_not]
+        }
+
+        all.trees = c(all.trees, trees)
+
+        old.walk_depth[old.walk_depth < min.walk_depth] <- min.walk_depth
+    }
+
+    return(list(
+        graph = state$graph,
+        features = state$features,
+        walk.depth = old.walk_depth,
+        trees = all.trees,
+        modules.nodes = old.modules,
+        modules.auc = old.auc
+    ))
+}
+
+#' Construct a new decision forest and run some iterations on it.
+#'
+#' @param DFNET_graph a list, whose first element is a graph and whose second
+#' element is a matrix of features
+#' @param ntrees how many trees should be generated initially and per iteration
+#' @param niter how many iterations to run
+#' @param init.mtry how many nodes to select per initial tree
+#' @return a list of shape \code{(DFNET_graph, DFNET_trees, DFNET_MODULES,
+#' DFNET_MODULES_AUC)}, where \code{DFNET_graph} is as in the input,
+#' \code{DFNET_trees} are the generated trees, \code{DFNET_MODULES} are the
+#' modules from which the trees were generated and \code{DFNET_MODULES_AUC} is
+#' the area under curve of the trees.
+#' @examples
+#' \dontrun{
+#' DFNET_graph <- DFNET_generate_graph_omics(graph, features, target)
+#' DFNET_object <- DFNET(DFNET_graph)
+#' # postprocess ...
+#' }
+DFNET <- function(DFNET_graph, ntrees = 100, niter = 200, init.mtry = NaN) {
+    state <- DFNET_init(DFNET_graph[[1]], DFNET_graph[[2]], ntrees = ntrees, walk.depth = init.mtry)
+    state <- DFNET_iterate(state, niter = niter)
+    return(list(
+        DFNET_graph = DFNET_graph, DFNET_trees = state$trees,
+        DFNET_MODULES = state$modules.nodes, DFNET_MODULES_AUC = state$modules.auc
+    ))
+}
