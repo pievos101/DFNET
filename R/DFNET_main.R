@@ -122,6 +122,12 @@ DFNET_init <- function(graph, features, ntrees = 100, walk.depth = NaN) {
 #' }
 #'
 DFNET_iterate <- function(state, niter = 200, offset = 0, min.walk_depth = 2) {
+    if (offset < 0 || niter < 0) {
+        stop("both offset and niter must be positive")
+    } else if (niter == 0) {
+        return(state)
+    }
+
     features <- state$features
     mmt <- multi_modal_target(features)
 
