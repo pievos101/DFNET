@@ -162,28 +162,15 @@ DFNET_iterate <- function(state, niter = 200, offset = 0, min.walk_depth = 2) {
 
         modules.auc <- auc_per_tree(trees, mmt$target)
 
-        ids.shrink <- which(modules.auc >= old.auc)
-        ids.shrink_not <- which(modules.auc < old.auc)
+        good_enough <- modules.auc >= old.auc
 
-        if (length(ids.shrink) > 0) {
-            old.auc[ids.shrink] <- modules.auc[ids.shrink]
-            old.modules[ids.shrink] <- modules[ids.shrink]
-            old.walk_depth[ids.shrink] <- walk.depth[ids.shrink]
-            # hotfix
-            trees[ids.shrink] <- trees[ids.shrink]
-        }
-        if (length(ids.shrink_not) > 0) {
-            # @FIXME: does this need copying?
-            old.auc[ids.shrink_not] <- old.auc[ids.shrink_not]
-            old.modules[ids.shrink_not] <- old.modules[ids.shrink_not]
-            old.walk_depth[ids.shrink_not] <- old.walk_depth[ids.shrink_not]
-            # hotfix
-            trees[ids.shrink_not] <- old.trees[ids.shrink_not]
-        }
-
-        all.trees = c(all.trees, trees)
-
+        # Update inner state
+        old.auc <- ifelse(good_enough, modules.auc, old.auc)
+        old.modules <- ifelse(good_enough, modules, old.modules)
+        old.walk_depth <- ifelse(good_enough, walk.depth, old.walk_depth)
         old.walk_depth[old.walk_depth < min.walk_depth] <- min.walk_depth
+        trees <- ifelse(good_enough, trees, old.trees)
+        all.trees <- c(all.trees, trees)
     }
 
     return(list(
