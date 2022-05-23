@@ -5,3 +5,4 @@ style <- function() {
 }
 style_dir("examples", style = style)
 style_dir("R", style = style)
+style_dir("tests", style = style)
