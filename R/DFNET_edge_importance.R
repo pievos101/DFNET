@@ -1,149 +1,55 @@
-# DFNET - Edge Importances
+#' Calculate the importance of particular edges in the graph.
+#'
+#' @param graph The graph to analyse
+#' @param features The features associated with each node in the graph
+#' @param trees The decision trees returned by DFNET iterations
+#' @param mc.cores how many cores to use in parallel
+#' @return the importance of each edge in \code{graph} w.r.t. \code{trees}.
+edge_importance <- function(graph, features, trees, mc.cores = 1) {
+    require(parallel) # parallel is a base package, it should always exist
 
-DFNET_edge_importance <- function(DFNET_graph, DFNET_object, parallel = FALSE) {
-    g <- DFNET_graph[[1]]
-    IN <- DFNET_graph[[2]]
+    mmt <- multi_modal_target(features)
+    edges <- as_edgelist(graph, names = TRUE)
 
-    MultiModalData <- !is.data.frame(IN)
-
-    if (MultiModalData) {
-        target <- IN[[1]][, "target"] # MM DATA
-    } else {
-        target <- IN[, "target"]
-    }
-
-
-    EDGELIST <- as_edgelist(g, names = TRUE)
-
-
-    DECISION_TREES_ALL <- DFNET_object$DFNET_trees
-
-    # Get the variables involved in each TREE
-    X_TREE_VARS <- lapply(
-        DECISION_TREES_ALL,
-        function(x) {
-            names(x$variable.importance)
+    tree_vars <- lapply(
+        trees, function(x) {
+            as.numeric(substring(names(x$variable.importance), 4))
         }
     )
+    tree_aucs <- auc_per_tree(trees, mmt$target)
 
-    TREE_VARS <- lapply(X_TREE_VARS, function(x) {
-        as.numeric(substring(x, 4))
-    })
+    edge_imp <- numeric(dim(edges)[1])
+    edges_list <- lapply(apply(edges, 1, list), unlist)
 
-    # Get the out-of-bag performance of each TREE
-    TREE_AUCS <- sapply(DECISION_TREES_ALL, function(x) {
-        auc(target, x$predictions,
-            na.rm = TRUE, levels = c(0, 1), direction = "<"
-        )[1]
-    })
+    for(xx in 1:length(tree_vars)) {
+        if (xx %% 100 == 0) cat (xx, " of ", length(tree_vars), " trees\n")
 
+        pred <- function(x) {all(is.element(x, tree_vars[[xx]]))}
+        res <- unlist(mclapply(edges_list, pred, mc.cores = mc.cores))
 
-    # Calculate EDGE IMPORTANCE
-    EDGE_IMP <- numeric(dim(EDGELIST)[1])
-    EDGELIST_LIST <- lapply(apply(EDGELIST, 1, list), unlist)
+        edge_imp[res] <- edge_imp[res] + tree_aucs[xx]
+    }
 
-    if (parallel) {
-        require(parallel)
-        for (xx in 1:length(TREE_VARS)) {
-            if (xx %% 100 == 0) cat(xx, " of ", length(TREE_VARS), " trees \n")
-
-            vars <- TREE_VARS[[xx]]
-            res <- mclapply(EDGELIST_LIST,
-                function(x) {
-                    all(is.element(x, vars))
-                },
-                mc.cores = detectCores() - 2
-            )
-            res <- unlist(res)
-
-            EDGE_IMP[res] <- EDGE_IMP[res] + TREE_AUCS[xx]
-        }
-    } # if parallel
-
-    if (!parallel) {
-
-        # VERSION 1 ###################
-        for (xx in 1:length(TREE_VARS)) {
-            if (xx %% 100 == 0) cat(xx, " of ", length(TREE_VARS), " trees \n")
-
-            vars <- TREE_VARS[[xx]]
-            res <- apply(EDGELIST, 1, function(x) {
-                all(is.element(x, vars))
-            })
-            EDGE_IMP[res] <- EDGE_IMP[res] + TREE_AUCS[xx]
-        }
-        ################################
-
-        # VERSION 2 #####################
-        # for (xx in 1:length(EDGELIST)){
-
-        # 	if (xx %% 1000 == 0) cat(xx, " of ", length(EDGELIST), " edges \n")
-        # 	edge <- EDGELIST[[xx]]
-
-        # 	res <- sapply(TREE_VARS, function(x){all(is.element(edge,x))})
-        # 	EDGE_IMP[xx] <- sum(TREE_AUCS[res])
-        # }
-        #################################
-    } # if not parallel
-
-
-    EDGE_IMP_FINAL <- relat(EDGE_IMP)
-
-    return(EDGE_IMP_FINAL)
+    return(relat(edge_imp))
 }
 
-
-DFNET_Edge_Importance_old <- function(DFNET_graph, DFNET_object) {
-    g <- DFNET_graph[[1]]
-    IN <- DFNET_graph[[2]]
-
-    MultiModalData <- !is.data.frame(IN)
-
-    if (MultiModalData) {
-        target <- IN[[1]][, "target"] # MM DATA
-    } else {
-        target <- IN[, "target"]
-    }
-
-
-    EDGELIST <- as_edgelist(g, names = TRUE)
-
-
-    DECISION_TREES_ALL <- DFNET_object$DFNET_trees
-
-    # Calculate EDGE IMPORTANCE
-    EDGE_IMP <- vector("list", dim(EDGELIST)[1])
-
-    for (xx in 1:dim(EDGELIST)[1]) {
-        if (xx %% 1000 == 0) cat(xx, " of ", dim(EDGELIST)[1], " edges \n")
-
-        edge <- paste("N_", EDGELIST[xx, ], sep = "")
-
-        for (yy in 1:length(DECISION_TREES_ALL)) {
-            Vimp <- names(DECISION_TREES_ALL[[yy]]$variable.importance)
-            # print(Vimp)
-
-            if (MultiModalData) {
-                Vimp_names <- substring(Vimp, 2)
-            } else {
-                Vimp_names <- Vimp
-            }
-
-            # print(edge)
-            # print(Vimp_names)
-            check <- match(edge, Vimp_names)
-
-            if (all(!is.na(check))) {
-                EDGE_IMP[[xx]] <- c(EDGE_IMP[[xx]], auc(target, DECISION_TREES_ALL[[yy]]$predictions, na.rm = TRUE, levels = c(0, 1), direction = "<")[1])
-            }
-        }
-    }
-
-    EDGE_IMP_FINAL <- sapply(EDGE_IMP, sum)
-    EDGE_IMP_FINAL <- relat(EDGE_IMP_FINAL)
-
-
-    return(EDGE_IMP_FINAL)
+#' Calculate the importance of particular edges in the graph.
+#'
+#' @param DFNET_graph a list, whose first element is a graph and whose second
+#' element is a matrix of features
+#' @param DFNET_object an object as returned by \code{DFNET(DFNET_graph)}
+#' @param parallel TRUE to compute importances in parallel
+#' @return the importance of each edge in the graph of \code{DFNET_graph}
+#' w.r.t. the decision trees in \code{DFNET_object}
+DFNET_edge_importance <- function(DFNET_graph, DFNET_object, parallel = FALSE) {
+    graph <- DFNET_graph[[1]]
+    features <- DFNET_graph[[2]]
+    trees <- DFNET_object$DFNET_trees
+    if (parallel)
+        mc.cores <- detectCores() - 2
+    else
+        mc.cores <- 1
+    return(edge_importance(graph, features, trees, mc.cores = mc.cores))
 }
 
 DFNET_Edge_Importance <- DFNET_edge_importance
