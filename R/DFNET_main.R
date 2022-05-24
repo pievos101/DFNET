@@ -22,8 +22,8 @@ DFNET_make_forest <- function(modules, features, mmt) {
 
         if (mmt$is.multi_modal) {
             mm_data <- features[[1]][, unique_nodes]
-            for (column in 2:length(features)) {
-                mm_data <- cbind(mm_data, features[[column]][, unique_nodes])
+            for (modality in 2:length(features)) {
+                mm_data <- cbind(mm_data, features[[modality]][, unique_nodes])
                 weights <- c(weights, unique_nodes_weights)
             }
         } else {
