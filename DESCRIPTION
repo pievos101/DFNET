@@ -3,7 +3,7 @@ Type: Package
 Title: Network Module Detection from Multi-Modal Node Features with a Greedy Decision Forest
 Version: 2.0
 Date: 2021-08-18
-Author: Bastian Pfeifer
+Author: Bastian Pfeifer, Liliana Marie Prikler
 Maintainer: Bastian Pfeifer <bastianxpfeifer@gmail.com>
 Depends: R (>= 2.14.2)
 Imports: methods, ranger, igraph, pROC
