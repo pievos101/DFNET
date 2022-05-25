@@ -1,7 +1,19 @@
+## DFNET_plot_module - Plot a module.
 
-# id       <- which.max(DFNET_object$DFNET_MODULES_AUC)
-# vertices <- DFNET_object$DFNET_MODULES[[id]]
-# library(igraph)
+## Copyright © 2021 Bastian Pfeifer <bastianxpfeifer@gmail.com>
+
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 DFNET_plot_module <- function(Nodes, DFNET_graph, DFNET_Eimp) {
     vertices <- Nodes
