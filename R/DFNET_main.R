@@ -197,7 +197,7 @@ DFNET_iterate <- function(forest, graph, features,
         last.perf <- ifelse(good_enough, perf, last.perf)
         last.modules <- ifelse(good_enough, modules, last.modules)
         last.trees <- ifelse(good_enough, trees, last.trees)
-        last.walk.depth <- ifelse(good_enough, walk.depth, last.walk.depth)
+        last.walk.depth <- ifelse(good_enough, walk.depth - 1, last.walk.depth)
         last.walk.depth[last.walk.depth < min.walk_depth] = min.walk_depth
 
         if (is.na(keep.generations) || (keep.generations > 1)) {
