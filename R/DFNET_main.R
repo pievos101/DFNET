@@ -1,6 +1,7 @@
 ## DFNET_main - Network module detection via greedy random forest.
 
 ## Copyright © 2021, 2022 Bastian Pfeifer <bastianxpfeifer@gmail.com>
+## Copyright © 2022 Liliana Prikler <liliana.prikler@ist.tugraz.at>
 
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
