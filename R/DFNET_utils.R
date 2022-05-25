@@ -52,15 +52,16 @@ relat <- function(x, na.rm = FALSE, default = 1, default.na = NaN) {
 #' Calculate the area under curve w.r.t. \code{target} for the predictions made
 #' by various decision trees.
 #'
-#' @param decision_trees a list of decision trees
+#' @param predictions the predictions
 #' @param target the target vector optimized for
 #' @return a vector of AUC values
-auc_per_tree <- function(decision_trees, target) {
-    sapply(decision_trees, function(tree) {
-        auc(target, tree$predictions,
+area_under_curve <- function(predictions, target) {
+    return(
+        pROC::auc(
+            target, predictions,
             na.rm = TRUE, levels = c(0, 1), direction = "<"
         )[1]
-    })
+    )
 }
 
 #' Extract the multi-modal target vector from \code{features}

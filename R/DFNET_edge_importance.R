@@ -11,12 +11,14 @@ edge_importance <- function(graph, features, trees, mc.cores = 1) {
     mmt <- multi_modal_target(features)
     edges <- as_edgelist(graph, names = TRUE)
 
+    tree_auc <- function(tree) area_under_curve(tree$predictions, mmt$target)
+
     tree_vars <- lapply(
         trees, function(x) {
             as.numeric(substring(names(x$variable.importance), 4))
         }
     )
-    tree_aucs <- auc_per_tree(trees, mmt$target)
+    tree_aucs <- sapply(trees, tree_auc)
 
     edge_imp <- numeric(dim(edges)[1])
     edges_list <- lapply(apply(edges, 1, list), unlist)
