@@ -8,7 +8,7 @@ Maintainer: Bastian Pfeifer <bastianxpfeifer@gmail.com>
 Depends: R (>= 2.14.2)
 Imports: methods, ranger, igraph, pROC
 Description: Subnetwork detection from multimodal node features using a new Greedy Decision Forest for better interpretability.
-License: GPL (>= 2)
+License: GPL (>= 3)
 LazyLoad: yes
 Suggests:
     testthat (>= 3.0.0), hedgehog (>= 0.1.0)
