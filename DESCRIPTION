@@ -10,5 +10,6 @@ Imports: methods, ranger, igraph, pROC
 Description: Subnetwork detection from multimodal node features using a new Greedy Decision Forest for better interpretability.
 License: GPL (>= 3)
 LazyLoad: yes
+Encoding: UTF-8
 Suggests:
     testthat (>= 3.0.0), hedgehog (>= 0.1.0)
