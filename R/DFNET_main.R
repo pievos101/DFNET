@@ -20,39 +20,37 @@
 #' given modules.
 #'
 #' @param modules a list of modules (node vectors)
-#' @param features the features to train on
-#' @param mmt the multi-modal target vector as returned by
-#' \code{multi_modal_target(features)}
+#' @param features the (multi-modal) features to train on
+#' @param target the target vector
 #' @return a decision forest with one tree per module in modules
-DFNET_make_forest <- function(modules, features, mmt) {
-    if (missing(mmt)) {
-        mmt <- multi_modal_target(features)
-    }
+DFNET_make_forest <- function(modules, features, target) {
     selected_nodes_weights <- lapply(modules, function(module) {
         as.numeric(table(module))
     })
-    target <- mmt$target
 
     lapply(1:length(modules), function(m) {
         unique_nodes <- sort(unique(modules[[m]]))
         unique_nodes_weights <- selected_nodes_weights[[m]]
         weights <- unique_nodes_weights
 
-        if (mmt$is.multi_modal) {
-            mm_data <- features[[1]][, unique_nodes]
-            for (modality in 2:length(features)) {
-                mm_data <- cbind(mm_data, features[[modality]][, unique_nodes])
-                weights <- c(weights, unique_nodes_weights)
-            }
-        } else {
+        if (length(dim(features)) == 2) {
             mm_data <- features[, unique_nodes]
+        } else {
+            mm_data <- features[, unique_nodes, ]
+            d <- dim(mm_data)
+            # XXX: repeats colnames per mode, strips mode name
+            dimnames <- list(
+                dimnames(mm_data)[[1]],
+                rep.int(dimnames(mm_data)[[2]], d[3])
+            )
+            mm_data <- matrix(mm_data, d[1], d[2]*d[3], dimnames = dimnames)
+            weights <- rep.int(weights, d[3])
         }
-        mm_data <- as.data.frame(cbind(mm_data, target))
 
         # Perform feature selection
         ranger(
-            dependent.variable.name = "target",
-            data = mm_data,
+            x = mm_data,
+            y = target,
             split.select.weights = weights / sum(weights),
             verbose = FALSE,
             classification = TRUE,
@@ -84,10 +82,9 @@ DFNET_make_forest <- function(modules, features, mmt) {
 #' \code{ntrees}, \code{walk.depth} to \code{walk.depth}, and
 #' \code{last.performance} to a vector of length \code{ntrees}, containing the
 #' result of \code{performance} of each tree w.r.t. \code{target}.
-DFNET_init <- function(graph, features, ntrees = 100, walk.depth = NaN,
+DFNET_init <- function(graph, features, target,
+                       ntrees = 100, walk.depth = NaN,
                        performance = DFNET:::area_under_curve) {
-    mmt <- multi_modal_target(features)
-
     nodes <- V(graph)
     n.nodes <- length(nodes)
 
@@ -113,9 +110,9 @@ DFNET_init <- function(graph, features, ntrees = 100, walk.depth = NaN,
         }
     }
 
-    decision_trees <- DFNET_make_forest(selected_nodes, features, mmt)
+    decision_trees <- DFNET_make_forest(selected_nodes, features, target)
     last.perf = sapply(decision_trees, function(tree) {
-        performance(tree$predictions, mmt$target)
+        performance(tree$predictions, target)
     })
 
     return(
@@ -138,6 +135,7 @@ DFNET_init <- function(graph, features, ntrees = 100, walk.depth = NaN,
 #' \code{DFNET_iterate}.
 #' @param graph the graph to train the forest on
 #' @param features the features to train the forest on
+#' @param target the target vector
 #' @param niter the number of iterations to run.
 #' @param offset an offset for the iteration count (used for logging only)
 #' @param min.walk_depth the minimal random walk depth in each iteration
@@ -161,7 +159,7 @@ DFNET_init <- function(graph, features, ntrees = 100, walk.depth = NaN,
 #' }
 #' }
 #'
-DFNET_iterate <- function(forest, graph, features,
+DFNET_iterate <- function(forest, graph, features, target,
                           niter = 200, offset = 0, min.walk_depth = 2,
                           performance = DFNET:::area_under_curve,
                           keep.generations = NA) {
@@ -175,8 +173,6 @@ DFNET_iterate <- function(forest, graph, features,
         stop("need to keep at least one generation")
     }
 
-    mmt <- multi_modal_target(features)
-
     ntrees <- attr(forest, "generation_size")
     last.walk.depth <- attr(forest, "walk.depth")
 
@@ -185,7 +181,7 @@ DFNET_iterate <- function(forest, graph, features,
     last.trees <- tail(all.trees, ntrees)
     last.modules <- tail(all.modules, ntrees)
 
-    tree_performance <- function(tree) performance(tree$predictions, mmt$target)
+    tree_performance <- function(tree) performance(tree$predictions, target)
     last.perf <- sapply(last.trees, tree_performance)
 
     iter.min <- offset + 1
@@ -206,7 +202,7 @@ DFNET_iterate <- function(forest, graph, features,
             as.numeric(random_walk(graph, start_nodes[sn], walk.depth[sn]))
         })
 
-        trees <- DFNET_make_forest(modules, features, mmt)
+        trees <- DFNET_make_forest(modules, features, target)
         perf <- sapply(trees, tree_performance)
 
         good_enough <- perf >= last.perf
@@ -267,8 +263,20 @@ DFNET_iterate <- function(forest, graph, features,
 #' # postprocess ...
 #' }
 DFNET <- function(DFNET_graph, ntrees = 100, niter = 200, init.mtry = NaN) {
-    forest <- DFNET_init(DFNET_graph[[1]], DFNET_graph[[2]], ntrees = ntrees, walk.depth = init.mtry)
-    forest <- DFNET_iterate(forest, DFNET_graph[[1]], DFNET_graph[[2]], niter = niter)
+    if(is.data.frame(DFNET_graph[[2]])) {
+        features <- as.matrix(DFNET_graph[[2]])
+        target <- features[, which(dimnames(features)[[2]] == "target")]
+        features <- features[, -which(dimnames(features)[[2]] == "target")]
+    } else {
+        features <- simplify2array(lapply(DFNET_graph[[2]], as.matrix))
+        target <- features[, which(dimnames(features)[[2]] == "target"),1]
+        features <- features[, -which(dimnames(features)[[2]] == "target"),]
+    }
+
+    forest <- DFNET_init(
+        DFNET_graph[[1]], features, target,
+        ntrees = ntrees, walk.depth = init.mtry)
+    forest <- DFNET_iterate(forest, DFNET_graph[[1]], features, target, niter = niter)
     return(list(
         DFNET_graph = DFNET_graph, DFNET_trees = forest$trees,
         DFNET_MODULES = forest$modules,

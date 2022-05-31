@@ -66,7 +66,8 @@ gen.graph_and_target <-
                 target <- sample(0:1, dim(gf$features)[[1]], replace = TRUE)
                 list(
                     graph = gf$graph,
-                    features = as.data.frame(cbind(gf$features, target))
+                    features = gf$features,
+                    target = target
                 )
             })
         }
@@ -107,9 +108,10 @@ test_that("No iteration means no iteration", {
         function(gf, niter, ntrees) {
             graph <- gf$graph
             features <- gf$features
+            target <- gf$target
 
-            state0 <- DFNET_init(graph, features, ntrees = ntrees)
-            state1 <- DFNET_iterate(state0, graph, features, 0)
+            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
+            state1 <- DFNET_iterate(state0, graph, features, target, 0)
 
             expect_equal(state0$modules, state1$modules)
         }
@@ -126,9 +128,10 @@ test_that("DFNET improves performance", {
         function(gf, niter, ntrees) {
             graph <- gf$graph
             features <- gf$features
+            target <- gf$target
 
-            state0 <- DFNET_init(graph, features, ntrees = ntrees)
-            state1 <- DFNET_iterate(state0, graph, features, niter)
+            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
+            state1 <- DFNET_iterate(state0, graph, features, target, niter)
 
             expect_true(
                 all(performance(state0) <= performance(state1)),
@@ -154,16 +157,17 @@ test_that("DFNET adds up", {
         function(gf, niter, ntrees) {
             graph <- gf$graph
             features <- gf$features
+            target <- gf$target
 
-            state0 <- DFNET_init(graph, features, ntrees = ntrees)
+            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
             state1 <- state0
 
             saved.seed <- .Random.seed
             for (iter in niter) {
-                state0 <- DFNET_iterate(state0, graph, features, iter)
+                state0 <- DFNET_iterate(state0, graph, features, target, iter)
             }
             assign(".Random.seed", saved.seed, envir = globalenv())
-            state1 <- DFNET_iterate(state1, graph, features, sum(niter))
+            state1 <- DFNET_iterate(state1, graph, features, target, sum(niter))
             expect_equal(state0$modules, state1$modules)
             expect_equal(performance(state0), performance(state1))
         }
@@ -180,10 +184,11 @@ test_that("DFNET shrinks modules", {
         function(gf, niter, ntrees) {
             graph <- gf$graph
             features <- gf$features
+            target <- gf$target
 
-            state0 <- DFNET_init(graph, features, ntrees = ntrees)
+            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
             state1 <- DFNET_iterate(
-                state0, graph, features, niter,
+                state0, graph, features, target, niter,
                 keep.generations = 1
             )
 
@@ -211,9 +216,10 @@ test_that("DFNET shrinks modules (manual selection)", {
         function(gf, niter, ntrees) {
             graph <- gf$graph
             features <- gf$features
+            target <- gf$target
 
-            forest <- DFNET_init(graph, features, ntrees = ntrees)
-            forest <- DFNET_iterate(forest, graph, features, niter)
+            forest <- DFNET_init(graph, features, target, ntrees = ntrees)
+            forest <- DFNET_iterate(forest, graph, features, target, niter)
 
             first <- head(forest$modules, ntrees)
             last <- tail(forest$modules, ntrees)
