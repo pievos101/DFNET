@@ -187,8 +187,7 @@ DFNET_iterate <- function(forest, graph, features, target,
     iter.min <- offset + 1
     iter.max <- offset + niter
     for (iter in iter.min:iter.max) {
-        # @FIXME: Use logger?
-        cat(iter, " of ", iter.max, "greedy steps\n")
+        message(iter, " of ", iter.max, " greedy steps")
 
         ids_keep <- sample(1:length(last.perf), prob = last.perf, replace = TRUE)
         kept_modules <- last.modules[ids_keep]

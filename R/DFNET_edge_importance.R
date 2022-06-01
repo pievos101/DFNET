@@ -42,7 +42,7 @@ edge_importance <- function(graph, features, trees, mc.cores = 1) {
     edges_list <- lapply(apply(edges, 1, list), unlist)
 
     for(xx in 1:length(tree_vars)) {
-        if (xx %% 100 == 0) cat (xx, " of ", length(tree_vars), " trees\n")
+        if (xx %% 100 == 0) message(xx, " of ", length(tree_vars), " trees")
 
         pred <- function(x) {all(is.element(x, tree_vars[[xx]]))}
         res <- unlist(mclapply(edges_list, pred, mc.cores = mc.cores))

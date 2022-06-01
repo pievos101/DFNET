@@ -67,7 +67,7 @@ unify_forest <- function(trees, data) {
     i <- 0
     support <- 0
     for (tree in trees) {
-        cat(i + 1, " of ", length(trees), " trees unified \n")
+        message(i + 1, " of ", length(trees), " trees unified")
         unified_tree <- ranger.unify(tree, data)
         unified_tree$model$Tree <- i
         # XXX: Why do we add support equally to the categorizations?
