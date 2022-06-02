@@ -13,8 +13,6 @@ export(DFNET_modules)
 export(DFNET_generate_graph_omics)
 export(DFNET_generate_graph_Omics) # likewise
 export(DFNET_calc_feature_importance)
-export(DFNET_plot_module)
-export(DFNET_get_module)
 export(DFNET_predict)
 export(DFNET_performance)
 export(DFNET_preprocess)
