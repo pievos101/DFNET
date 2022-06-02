@@ -19,25 +19,20 @@
 #' Calculate the importance of particular edges in the graph.
 #'
 #' @param graph The graph to analyse
-#' @param features The features associated with each node in the graph
 #' @param trees The decision trees returned by DFNET iterations
+#' @param tree_importances Numeric importance scores assigned to each tree
 #' @param mc.cores how many cores to use in parallel
 #' @return the importance of each edge in \code{graph} w.r.t. \code{trees}.
-edge_importance <- function(graph, features, trees, mc.cores = 1) {
+edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
     require(parallel) # parallel is a base package, it should always exist
-
-    mmt <- multi_modal_target(features)
-    edges <- as_edgelist(graph, names = TRUE)
-
-    tree_auc <- function(tree) area_under_curve(tree$predictions, mmt$target)
 
     tree_vars <- lapply(
         trees, function(x) {
             names(x$variable.importance)
         }
     )
-    tree_aucs <- sapply(trees, tree_auc)
 
+    edges <- as_edgelist(graph, names = TRUE)
     edge_imp <- numeric(dim(edges)[1])
     edges_list <- lapply(apply(edges, 1, list), unlist)
 
@@ -47,7 +42,7 @@ edge_importance <- function(graph, features, trees, mc.cores = 1) {
         pred <- function(x) {all(is.element(x, tree_vars[[xx]]))}
         res <- unlist(mclapply(edges_list, pred, mc.cores = mc.cores))
 
-        edge_imp[res] <- edge_imp[res] + tree_aucs[xx]
+        edge_imp[res] <- edge_imp[res] + tree_importances[xx]
     }
 
     return(relat(edge_imp))
@@ -65,11 +60,17 @@ DFNET_edge_importance <- function(DFNET_graph, DFNET_object, parallel = FALSE) {
     graph <- DFNET_graph[[1]]
     features <- DFNET_graph[[2]]
     trees <- DFNET_object$DFNET_trees
+    mmt <- multi_modal_target(features)
+    scores <- sapply(
+        trees,
+        function(tree) area_under_curve(tree$predictions, mmt$target)
+    )
+
     if (parallel)
         mc.cores <- detectCores() - 2
     else
         mc.cores <- 1
-    return(edge_importance(graph, features, trees, mc.cores = mc.cores))
+    return(edge_importance(graph, trees, scores, mc.cores = mc.cores))
 }
 
 DFNET_Edge_Importance <- DFNET_edge_importance
