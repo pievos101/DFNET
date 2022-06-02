@@ -34,7 +34,10 @@ DFNET_make_forest <- function(modules, features, target) {
         weights <- unique_nodes_weights
 
         if (length(dim(features)) == 2) {
-            mm_data <- features[, unique_nodes]
+            mm_data <- as.matrix(features[, unique_nodes])
+        } else if (dim(features)[3] == 1) {
+            # unimodal data in 3D array, would otherwise collapse
+            mm_data <- as.matrix(features[, unique_nodes, 1])
         } else {
             mm_data <- features[, unique_nodes, ]
             d <- dim(mm_data)
