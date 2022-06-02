@@ -33,7 +33,7 @@ edge_importance <- function(graph, features, trees, mc.cores = 1) {
 
     tree_vars <- lapply(
         trees, function(x) {
-            as.numeric(substring(names(x$variable.importance), 4))
+            names(x$variable.importance)
         }
     )
     tree_aucs <- sapply(trees, tree_auc)
