@@ -15,6 +15,27 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+module_importance <- function(graph, modules, edge_importances,
+                              tree_importances, mc.cores = 1) {
+    module_imp <- cbind(0, tree_importances)
+    edges <- as_edgelist(graph, names=FALSE)
+
+    for(e in 1:nrow(edges)) {
+        edge <- edges[e, 1:2]
+        pred <- function(module) {all(is.element(edge, module))}
+        res <- unlist(mclapply(modules, pred, mc.cores = mc.cores))
+        # XXX: What about edge weight?
+        module_imp[res, 1] <- module_imp[res, 1] + edge_importances[e]
+    }
+
+    # FIXME: paper actually claims normalization by edge count, not module size
+    module_imp[, 1] <- module_imp[, 1] / sapply(modules, length)
+    module_imp[, 2] <- module_imp[, 1] + module_imp[, 2]
+    colnames(module_imp) <- c("edge", "total")
+
+    return(module_imp)
+}
+
 DFNET_modules <- function(DFNET_graph, DFNET_object, DFNET_eImp) {
     N.trees <- length(DFNET_object$DFNET_MODULES)
     N.Nodes <- length(V(DFNET_graph$graph))
