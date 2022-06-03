@@ -36,6 +36,42 @@ module_importance <- function(graph, modules, edge_importances,
     return(module_imp)
 }
 
+unique_module_importance <- function(graph, modules, edge_importances,
+                                     tree_importances, mc.cores = 1,
+                                     collapse = mean) {
+    module_imp <- module_importance(
+        graph, modules,
+        edge_importances, tree_importances,
+        mc.cores = mc.cores
+    )
+
+    modules <- lapply(modules, function(m) unique(sort(m)))
+    module_name <- function(mod) paste(mod, collapse = " ")
+    module_names <- sapply(modules, module_name)
+    by_module_name <- order(module_names)
+
+    module_imp <- module_imp[by_module_name,]
+    tree_importances <- tree_importances[by_module_name]
+    modules <- modules[by_module_name]
+
+    unique_modules <- unique(modules)
+    unique_module_imp <- matrix(0, nrow = length(unique_modules), ncol = 3)
+    colnames(unique_module_imp) <- c("tree", "edge", "total")
+    rownames(unique_module_imp) <- sapply(unique_modules, module_name)
+
+    for (module in unique_modules) {
+        select <- sapply(modules, function(m) identical(m, module))
+
+        unique_module_imp[module_name(module), 1:2] = c(
+            collapse(tree_importances[select]),
+            collapse(module_imp[select, 1])
+        )
+    }
+    unique_module_imp[, 3] <- unique_module_imp[, 1] + unique_module_imp[, 2]
+
+    return(list(table = unique_module_imp, modules = unique_modules))
+}
+
 DFNET_modules <- function(DFNET_graph, DFNET_object, DFNET_eImp) {
     N.trees <- length(DFNET_object$DFNET_MODULES)
     N.Nodes <- length(V(DFNET_graph$graph))
