@@ -196,3 +196,30 @@ test_that("DFNET returns simplified modules", {
         }
     )
 })
+
+test_that("DFNET may prune trees", {
+    forall(
+        list(
+            gf = gen.graph_and_target,
+            niter = gen.test_niter,
+            ntrees = gen.test_ntrees,
+            keep = gen.test_niter
+        ),
+        function(gf, niter, ntrees, keep) {
+            graph <- gf$graph
+            features <- gf$features
+            target <- gf$target
+
+            forest <- DFNET_init(graph, features, target, ntrees = ntrees)
+            forest <- DFNET_iterate(
+                forest, graph, features, target, niter,
+                keep.generations = keep
+            )
+
+            # XXX: We only validate lengths, not selections
+            expect_lte(length(forest$modules), ntrees * keep)
+            expect_lte(length(forest$trees), ntrees * keep)
+            expect_equal(length(forest$modules), length(forest$trees))
+        }
+    )
+})
