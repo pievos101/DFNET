@@ -24,13 +24,11 @@
 #' @param target the target vector
 #' @return a decision forest with one tree per module in modules
 DFNET_make_forest <- function(modules, features, target) {
-    selected_nodes_weights <- lapply(modules, function(module) {
-        as.numeric(table(module))
-    })
+    modules_rle <- lapply(modules, function (m) rle(sort(m)))
 
-    lapply(1:length(modules), function(m) {
-        unique_nodes <- sort(unique(modules[[m]]))
-        unique_nodes_weights <- selected_nodes_weights[[m]]
+    decision_trees <- lapply(modules_rle, function(m) {
+        unique_nodes <- m$values
+        unique_nodes_weights <- m$lengths
         weights <- unique_nodes_weights
 
         if (length(dim(features)) == 2) {
@@ -63,6 +61,13 @@ DFNET_make_forest <- function(modules, features, target) {
             replace = TRUE
         )
     })
+
+    return(
+        list(
+            trees = decision_trees,
+            modules = lapply(modules_rle, function(mrle) mrle$values)
+        )
+    )
 }
 
 #' Initialize the decision forest network.
@@ -113,17 +118,14 @@ DFNET_init <- function(graph, features, target,
         }
     }
 
-    decision_trees <- DFNET_make_forest(selected_nodes, features, target)
-    last.perf = sapply(decision_trees, function(tree) {
+    seed <- DFNET_make_forest(selected_nodes, features, target)
+    last.perf = sapply(seed$trees, function(tree) {
         performance(tree$predictions, target)
     })
 
     return(
         structure(
-            list(
-                trees = decision_trees,
-                modules = selected_nodes
-            ),
+            seed,
             class = "DFNET::forest",
             generation_size = ntrees,
             walk.depth = walk.depth,
@@ -204,15 +206,15 @@ DFNET_iterate <- function(forest, graph, features, target,
             as.numeric(random_walk(graph, start_nodes[sn], walk.depth[sn]))
         })
 
-        trees <- DFNET_make_forest(modules, features, target)
-        perf <- sapply(trees, tree_performance)
+        next_gen <- DFNET_make_forest(modules, features, target)
+        perf <- sapply(next_gen$trees, tree_performance)
 
         good_enough <- perf >= last.perf
 
         # Update inner state
         last.perf <- ifelse(good_enough, perf, last.perf)
-        last.modules <- ifelse(good_enough, modules, last.modules)
-        last.trees <- ifelse(good_enough, trees, last.trees)
+        last.modules <- ifelse(good_enough, next_gen$modules, last.modules)
+        last.trees <- ifelse(good_enough, next_gen$trees, last.trees)
         last.walk.depth <- ifelse(good_enough, walk.depth - 1, last.walk.depth)
         last.walk.depth[last.walk.depth < min.walk_depth] = min.walk_depth
 

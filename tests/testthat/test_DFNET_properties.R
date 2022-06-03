@@ -174,43 +174,11 @@ test_that("DFNET adds up", {
     )
 })
 
-test_that("DFNET shrinks modules", {
+test_that("DFNET returns simplified modules", {
     forall(
         list(
             gf = gen.graph_and_target,
-            niter = gen.test_niter,
-            ntrees = gen.test_ntrees
-        ),
-        function(gf, niter, ntrees) {
-            graph <- gf$graph
-            features <- gf$features
-            target <- gf$target
-
-            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
-            state1 <- DFNET_iterate(
-                state0, graph, features, target, niter,
-                keep.generations = 1
-            )
-
-            expect_true(
-                all(module_size(state1) <= module_size(state0)),
-                label = "no worse after iteration"
-            )
-            # Shaky, might fail if DFNET_init creates a near-optimal
-            # solution or there are too few iterations
-            expect_true(
-                any(module_size(state1) < module_size(state0)),
-                label = "better after iteration"
-            )
-        }
-    )
-})
-
-test_that("DFNET shrinks modules (manual selection)", {
-    forall(
-        list(
-            gf = gen.graph_and_target,
-            niter = gen.test_niter,
+            niter = gen.choice(0, gen.test_niter),
             ntrees = gen.test_ntrees
         ),
         function(gf, niter, ntrees) {
@@ -221,18 +189,9 @@ test_that("DFNET shrinks modules (manual selection)", {
             forest <- DFNET_init(graph, features, target, ntrees = ntrees)
             forest <- DFNET_iterate(forest, graph, features, target, niter)
 
-            first <- head(forest$modules, ntrees)
-            last <- tail(forest$modules, ntrees)
-
-            expect_true(
-                all(sapply(last, length) <= sapply(first, length)),
-                label = "no worse after iteration"
-            )
-            # Shaky, might fail if DFNET_init creates a near-optimal
-            # solution or there are too few iterations
-            expect_true(
-                any(sapply(last, length) < sapply(first, length)),
-                label = "better after iteration"
+            expect_identical(
+                forest$modules,
+                lapply(forest$modules, function(m) unique(sort(m)))
             )
         }
     )
