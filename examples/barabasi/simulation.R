@@ -25,18 +25,12 @@ tree_imp <- sapply(
 )
 edge_imp <- edge_importance(graph, forest$trees, tree_imp)
 print(edge_imp)
-module_imp <- module_importance(graph, forest$modules, edge_imp, tree_imp)
+umi <- unique_module_importance(graph, forest$modules, edge_imp, tree_imp)
 
-modules <- sapply(forest$modules, function(module) {
-    paste(unique(sort(module)), collapse = " ")
-})
+by_importance <- order(umi$table[, "total"], decreasing = TRUE)
+detected_module <- unlist(umi$modules[by_importance][1])
 
-data <- data.frame(modules, tree_imp, module_imp)
-by_importance <- order(data[,"total"], decreasing = TRUE)
-
-detected_module <- unlist(forest$modules[by_importance][1])
-
-print(head(data[by_importance,]))
+print(head(umi$table[by_importance,]))
 print(unique(sort(input$module)))
 
 edgelist <- as_edgelist(graph, names = FALSE)

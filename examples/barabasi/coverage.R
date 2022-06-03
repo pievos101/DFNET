@@ -41,11 +41,11 @@ for (xx in 1:length(niter)) {
 
         tree_imp <- attr(forests[[yy]], "last.performance")
         edge_imp <- edge_importance(input$graph, forests[[yy]]$trees, tree_imp)
-        module_imp <- module_importance(
+        umi <- unique_module_importance(
             input$graph, forests[[yy]]$modules, edge_imp, tree_imp
         )
-        by_importance <- order(module_imp[,2], decreasing=TRUE)
-        top_modules <- forests[[yy]]$modules[by_importance]
+        by_importance <- order(umi$table[,"total"], decreasing=TRUE)
+        top_modules <- umi$modules[by_importance]
 
         sm <- unique(sort(input$module))
         bm <- unique(sort(top_modules[[1]]))
@@ -53,7 +53,7 @@ for (xx in 1:length(niter)) {
         coverage[yy, xx] <- as.numeric(identical(sm, bm))
         iou[yy, xx] <- intersection_over_union(sm, bm)
         auc[yy, xx] <- mean(tree_imp)
-        n_candidates[yy, xx] <- length(unique(top_modules))
+        n_candidates[yy, xx] <- length(top_modules)
     }
     print(coverage)
     print(n_candidates)
