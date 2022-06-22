@@ -65,7 +65,8 @@ DFNET_make_forest <- function(modules, features, target) {
     return(
         list(
             trees = decision_trees,
-            modules = lapply(modules_rle, function(mrle) mrle$values)
+            modules = lapply(modules_rle, function(mrle) mrle$values),
+            modules.weights = lapply(modules_rle, function(mrle) mrle$lengths)
         )
     )
 }
@@ -183,8 +184,10 @@ DFNET_iterate <- function(forest, graph, features, target,
 
     all.trees <- forest$trees
     all.modules <- forest$modules
+    all.modules.weights <- forest$modules.weights
     last.trees <- tail(all.trees, ntrees)
     last.modules <- tail(all.modules, ntrees)
+    last.modules.weights <- tail(all.modules.weights, ntrees)
 
     tree_performance <- function(tree) performance(tree$predictions, target)
     last.perf <- sapply(last.trees, tree_performance)
@@ -214,15 +217,19 @@ DFNET_iterate <- function(forest, graph, features, target,
         # Update inner state
         last.perf <- ifelse(good_enough, perf, last.perf)
         last.modules <- ifelse(good_enough, next_gen$modules, last.modules)
+        last.modules.weights <-
+            ifelse(good_enough, next_gen$modules.weights, last.modules.weights)
         last.trees <- ifelse(good_enough, next_gen$trees, last.trees)
         last.walk.depth <- ifelse(good_enough, walk.depth - 1, last.walk.depth)
         last.walk.depth[last.walk.depth < min.walk_depth] = min.walk_depth
 
         if (is.na(keep.generations) || (keep.generations > 1)) {
             all.modules <- c(all.modules, last.modules)
+            all.modules.weights <- c(all.modules.weights, last.modules.weights)
             all.trees <- c(all.trees, last.trees)
         } else {
             all.modules <- last.modules
+            all.modules.weights <- last.modules.weights
             all.trees <- last.trees
         }
     }
@@ -231,6 +238,7 @@ DFNET_iterate <- function(forest, graph, features, target,
         nkeep <- keep.generations * ntrees
 
         all.modules <- tail(all.modules, nkeep)
+        all.modules.weights <- tail(all.modules.weights, nkeep)
         all.trees <- tail(all.trees, nkeep)
     }
 
@@ -238,7 +246,8 @@ DFNET_iterate <- function(forest, graph, features, target,
         structure(
             list(
                 trees = all.trees,
-                modules = all.modules
+                modules = all.modules,
+                modules.weights = all.modules.weights
             ),
             class = "DFNET::forest",
             generation_size = ntrees,

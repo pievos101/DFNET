@@ -34,7 +34,7 @@ sample.graph <- function(n.nodes, power, n.samples) {
 }
 
 performance <- function(forest) attr(forest, "last.performance")
-module_size <- function(forest) as.numeric(lapply(forest$modules, length))
+module_weights <- function(forest) as.numeric(lapply(forest$modules.weights, sum))
 
 ## Generators
 gen.graph <-
@@ -97,6 +97,8 @@ gen.test_ntrees <-
             c(2, 4, 8, 16, 32, 64)
         )
     )
+
+test_flaky <- getOption("test_DFNET_properties.flaky", FALSE)
 
 ## Actual tests
 test_that("No iteration means no iteration", {
@@ -193,6 +195,74 @@ test_that("DFNET returns simplified modules", {
                 forest$modules,
                 lapply(forest$modules, function(m) unique(sort(m)))
             )
+        }
+    )
+})
+
+test_that("DFNET shrinks module weights", {
+    forall(
+        list(
+            gf = gen.graph_and_target,
+            niter = gen.test_niter,
+            ntrees = gen.test_ntrees
+        ),
+        function(gf, niter, ntrees) {
+            graph <- gf$graph
+            features <- gf$features
+            target <- gf$target
+
+            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
+            state1 <- DFNET_iterate(
+                state0, graph, features, target, niter,
+                keep.generations = 1
+            )
+
+            expect_true(
+                all(module_weights(state0) >= module_weights(state1)),
+                label = "no worse after iteration"
+            )
+            # Since the first round of DFNET does not actually decrement the
+            # walk depth, the following will often fail (especially after
+            # shrinking)
+            if (test_flaky) {
+                expect_true(
+                    any(module_weights(state0) > module_weights(state1)),
+                    label = "better after iteration"
+                )
+            }
+        }
+    )
+})
+
+test_that("DFNET shrinks module weights (manual selection)", {
+    forall(
+        list(
+            gf = gen.graph_and_target,
+            niter = gen.test_niter,
+            ntrees = gen.test_ntrees
+        ),
+        function(gf, niter, ntrees) {
+            graph <- gf$graph
+            features <- gf$features
+            target <- gf$target
+
+            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
+            state1 <- DFNET_iterate(state0, graph, features, target, niter)
+
+            weights0 <- module_weights(state0)
+            weights1 <- tail(module_weights(state1), ntrees)
+
+            expect_true(
+                all(weights0 >= weights1),
+                label = "no worse after iteration"
+            )
+            # As with the other variant, this test is very flaky
+            if (test_flaky) {
+                expect_true(
+                    any(weights0 > weights1),
+                    label = "better after iteration"
+                )
+            }
         }
     )
 })
