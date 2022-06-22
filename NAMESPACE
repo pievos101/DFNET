@@ -10,8 +10,7 @@ export(DFNET)
 export(DFNET_edge_importance)
 export(DFNET_Edge_Importance) # for backwards compatibility
 export(DFNET_modules)
-export(DFNET_generate_graph_omics)
-export(DFNET_generate_graph_Omics) # likewise
+export(launder)
 export(DFNET_calc_feature_importance)
 export(DFNET_predict)
 export(DFNET_performance)
