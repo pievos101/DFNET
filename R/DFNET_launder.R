@@ -41,16 +41,19 @@ common_features <- function(features) {
 #' \code{graph}
 graphed_features <- function(features, graph) {
     if (length(dim(features)) == 2) {
-        return(features[, vertex_attr(graph, "names")])
+        return(features[, igraph::vertex_attr(graph, "names")])
     } else {
-        return(features[, vertex_attr(graph, "names"), ])
+        return(features[, igraph::vertex_attr(graph, "names"), ])
     }
 }
 
 #' Like \code{induced.subgraph} from the igraph package, but using names rather
 #' than vertex IDs.
 induced.subgraph.by_name <- function(graph, names) {
-    induced.subgraph(graph, na.omit(match(names, vertex_attr(graph, "names"))))
+    igraph::induced.subgraph(
+        graph,
+        na.omit(match(names, igraph::vertex_attr(graph, "names")))
+    )
 }
 
 #' Cut off edges below a certain threshold.
@@ -66,13 +69,13 @@ cut_off <- function(graph, threshold = NaN, threshold.quantile = NaN) {
         return(graph)
     }
 
-    weights <- edge_attr(graph, "weights")
+    weights <- igraph::edge_attr(graph, "weights")
 
     if (is.na(threshold)) {
         threshold <- quantile(weights, probs = threshold.quantile)
     }
 
-    delete.edges(graph, E(graph)[which(weights < threshold)])
+    igraph::delete.edges(graph, E(graph)[which(weights < threshold)])
 }
 
 #' Launder the input graph and features.

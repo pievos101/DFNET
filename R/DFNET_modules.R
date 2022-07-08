@@ -18,7 +18,7 @@
 module_importance <- function(graph, modules, edge_importances,
                               tree_importances, mc.cores = 1) {
     module_imp <- cbind(0, tree_importances)
-    edges <- as_edgelist(graph, names = FALSE)
+    edges <- igraph::as_edgelist(graph, names = FALSE)
 
     for (e in 1:nrow(edges)) {
         edge <- edges[e, 1:2]

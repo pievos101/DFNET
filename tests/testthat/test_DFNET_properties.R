@@ -24,7 +24,7 @@ if (is.null(getOption("hedgehog.tests"))) {
 
 ## Utility functions
 sample.graph <- function(n.nodes, power, n.samples) {
-    g <- sample_pa(n.nodes, power = power, directed = FALSE)
+    g <- igraph::sample_pa(n.nodes, power = power, directed = FALSE)
     features <- matrix(
         sample(0:1, n.samples * n.nodes, replace = TRUE),
         n.samples, n.nodes

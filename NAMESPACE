@@ -1,6 +1,7 @@
 import(methods)
-import(igraph)
 import(pROC)
+
+importFrom("igraph", "V", "E")
 
 #importFrom("stats", "dnorm", "rgamma", "rnorm", "runif", "sd")
 #importFrom("utils", "read.table", "write.table")

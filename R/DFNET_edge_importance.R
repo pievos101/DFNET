@@ -32,7 +32,7 @@ edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
         }
     )
 
-    edges <- as_edgelist(graph, names = TRUE)
+    edges <- igraph::as_edgelist(graph, names = TRUE)
     edge_imp <- numeric(dim(edges)[1])
     edges_list <- lapply(apply(edges, 1, list), unlist)
 

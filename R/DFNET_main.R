@@ -108,7 +108,7 @@ DFNET_init <- function(graph, features, target,
         sampled.nodes <- sample(nodes, (ntrees + 1 - count), replace = TRUE)
         for (sn in sampled.nodes) {
             depth <- walk.depth[[count]]
-            selected_nodes[[count]] <- as.numeric(random_walk(graph, sn, depth))
+            selected_nodes[[count]] <- as.numeric(igraph::random_walk(graph, sn, depth))
             # Pick only walks of maximal length
             if (length(selected_nodes[[count]]) >= walk.depth[[count]]) {
                 count <- count + 1
@@ -207,7 +207,9 @@ DFNET_iterate <- function(forest, graph, features, target,
         })
 
         modules <- lapply(1:length(start_nodes), function(sn) {
-            as.numeric(random_walk(graph, start_nodes[sn], walk.depth[sn]))
+            as.numeric(
+                igraph::random_walk(graph, start_nodes[sn], walk.depth[sn])
+            )
         })
 
         next_gen <- DFNET_make_forest(modules, features, target)
