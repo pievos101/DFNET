@@ -18,11 +18,13 @@
 module_importance <- function(graph, modules, edge_importances,
                               tree_importances, mc.cores = 1) {
     module_imp <- cbind(0, tree_importances)
-    edges <- as_edgelist(graph, names=FALSE)
+    edges <- as_edgelist(graph, names = FALSE)
 
-    for(e in 1:nrow(edges)) {
+    for (e in 1:nrow(edges)) {
         edge <- edges[e, 1:2]
-        pred <- function(module) {all(is.element(edge, module))}
+        pred <- function(module) {
+            all(is.element(edge, module))
+        }
         res <- unlist(mclapply(modules, pred, mc.cores = mc.cores))
         # XXX: What about edge weight?
         module_imp[res, 1] <- module_imp[res, 1] + edge_importances[e]
@@ -50,7 +52,7 @@ unique_module_importance <- function(graph, modules, edge_importances,
     module_names <- sapply(modules, module_name)
     by_module_name <- order(module_names)
 
-    module_imp <- module_imp[by_module_name,]
+    module_imp <- module_imp[by_module_name, ]
     tree_importances <- tree_importances[by_module_name]
     modules <- modules[by_module_name]
 
@@ -62,7 +64,7 @@ unique_module_importance <- function(graph, modules, edge_importances,
     for (module in unique_modules) {
         select <- sapply(modules, function(m) identical(m, module))
 
-        unique_module_imp[module_name(module), 1:2] = c(
+        unique_module_imp[module_name(module), 1:2] <- c(
             collapse(tree_importances[select]),
             collapse(module_imp[select, 1])
         )

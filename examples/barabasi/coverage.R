@@ -2,16 +2,19 @@ library(DFNET)
 source("graph.R")
 
 input <- NULL
-while(is.null(input)) {
-    tryCatch({
-        input <- simple_input_graph(n.nodes=50)
-    }, error = function(e) {
-        message("failed to create a graph, retrying...")
-    })
+while (is.null(input)) {
+    tryCatch(
+        {
+            input <- simple_input_graph(n.nodes = 50)
+        },
+        error = function(e) {
+            message("failed to create a graph, retrying...")
+        }
+    )
 }
 
 n.forests <- 50
-niter <- c(2,3,5,10,30,50)
+niter <- c(2, 3, 5, 10, 30, 50)
 cum_niter <- c(0, cumsum(niter))
 
 message("allocating forests, this may take some time...")
@@ -44,7 +47,7 @@ for (xx in 1:length(niter)) {
         umi <- unique_module_importance(
             input$graph, forests[[yy]]$modules, edge_imp, tree_imp
         )
-        by_importance <- order(umi$table[,"total"], decreasing=TRUE)
+        by_importance <- order(umi$table[, "total"], decreasing = TRUE)
         top_modules <- umi$modules[by_importance]
 
         sm <- unique(sort(input$module))
@@ -61,7 +64,7 @@ for (xx in 1:length(niter)) {
 
 # Save the workspace
 save.image("results.RData")
-save(input, file="input.RData")
+save(input, file = "input.RData")
 
 # Do some plots
 xnames <- cum_niter[2:length(cum_niter)]
@@ -75,7 +78,7 @@ barplot(
 boxplot(
     iou,
     ylab = "Intersection over union", xlab = "Iterations",
-    names = xnames, col = "cadetblue", ylim=c(0, 1), las = 2
+    names = xnames, col = "cadetblue", ylim = c(0, 1), las = 2
 )
 
 boxplot(
@@ -87,5 +90,5 @@ boxplot(
 boxplot(
     auc,
     ylab = "Mean area under curve", xlab = "Iterations",
-    names = xnames, col = "cadetblue", ylim=c(0, 1), las = 2
+    names = xnames, col = "cadetblue", ylim = c(0, 1), las = 2
 )

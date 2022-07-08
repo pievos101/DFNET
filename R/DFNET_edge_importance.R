@@ -36,10 +36,12 @@ edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
     edge_imp <- numeric(dim(edges)[1])
     edges_list <- lapply(apply(edges, 1, list), unlist)
 
-    for(xx in 1:length(tree_vars)) {
+    for (xx in 1:length(tree_vars)) {
         if (xx %% 100 == 0) message(xx, " of ", length(tree_vars), " trees")
 
-        pred <- function(x) {all(is.element(x, tree_vars[[xx]]))}
+        pred <- function(x) {
+            all(is.element(x, tree_vars[[xx]]))
+        }
         res <- unlist(mclapply(edges_list, pred, mc.cores = mc.cores))
 
         edge_imp[res] <- edge_imp[res] + tree_importances[xx]
@@ -66,10 +68,11 @@ DFNET_edge_importance <- function(DFNET_graph, DFNET_object, parallel = FALSE) {
         function(tree) area_under_curve(tree$predictions, mmt$target)
     )
 
-    if (parallel)
+    if (parallel) {
         mc.cores <- detectCores() - 2
-    else
+    } else {
         mc.cores <- 1
+    }
     return(edge_importance(graph, trees, scores, mc.cores = mc.cores))
 }
 

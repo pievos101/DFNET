@@ -35,21 +35,21 @@ sample.features <- function(columns, n.samples) {
 }
 
 gen.s <- gen.map(
-    function (x) do.call(str_c, x),
+    function(x) do.call(str_c, x),
     gen.list(gen.element(letters))
 )
 
 test_that("common_features are common", {
     forall(
         list(
-            common = gen.c(gen.s, from=2),
-            uncommon = gen.list(gen.c(gen.s), from=2),
+            common = gen.c(gen.s, from = 2),
+            uncommon = gen.list(gen.c(gen.s), from = 2),
             n.samples = gen.element(seq(100, 300, by = 10))
         ),
         function(common, uncommon, n.samples) {
             common <- unique(common)
             # matrices don't have column names if there's only one column
-            if(length(common) < 2) discard()
+            if (length(common) < 2) discard()
             matrices <- lapply(uncommon, function(x) {
                 sample.features(unique(c(common, x)), n.samples)
             })
@@ -65,8 +65,8 @@ test_that("common_features are common", {
                 expect_equal(
                     # Use known common again as subscript due to potentially
                     # unknown commons existing.  See the comment above.
-                    common.features[,common,xx],
-                    matrices[[xx]][,common]
+                    common.features[, common, xx],
+                    matrices[[xx]][, common]
                 )
             }
         }
@@ -76,15 +76,14 @@ test_that("common_features are common", {
 test_that("graphed_features are graphed", {
     forall(
         list(
-            common = gen.c(gen.s, from=2),
+            common = gen.c(gen.s, from = 2),
             ungraphed = gen.c(gen.s),
             n.samples = gen.element(seq(100, 300, by = 10)),
             power = gen.element(seq(0.5, 3, by = 0.1))
-
         ),
         function(common, ungraphed, n.samples, power) {
             graph <- sample.graph(common, power)
-            if(length(V(graph)) < 2) discard()
+            if (length(V(graph)) < 2) discard()
             features <- sample.features(
                 sample(unique(c(common, ungraphed))),
                 n.samples
@@ -102,23 +101,22 @@ test_that("graphed_features are graphed", {
 test_that("launder washes data", {
     forall(
         list(
-            common = gen.c(gen.s, from=2),
+            common = gen.c(gen.s, from = 2),
             graph_dummies = gen.c(gen.s),
-            uncommon = gen.list(gen.c(gen.s), from=2),
+            uncommon = gen.list(gen.c(gen.s), from = 2),
             n.samples = gen.element(seq(100, 300, by = 10)),
             power = gen.element(seq(0.5, 3, by = 0.1))
-
         ),
         function(common, graph_dummies, uncommon, n.samples, power) {
             common <- unique(common)
             # matrices don't have column names if there's only one column
-            if(length(common) < 2) discard()
+            if (length(common) < 2) discard()
 
             graph <- sample.graph(c(common, graph_dummies), power)
             matrices <- lapply(uncommon, function(x) {
                 sample.features(unique(c(common, x)), n.samples)
             })
-            laundered = launder(graph, matrices)
+            laundered <- launder(graph, matrices)
 
             expect_equal(
                 dimnames(laundered$features)[[2]],

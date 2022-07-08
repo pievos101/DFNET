@@ -40,7 +40,7 @@ common_features <- function(features) {
 #' @return \code{features} reduced to columns whose names appear in
 #' \code{graph}
 graphed_features <- function(features, graph) {
-    if(length(dim(features)) == 2) {
+    if (length(dim(features)) == 2) {
         return(features[, vertex_attr(graph, "names")])
     } else {
         return(features[, vertex_attr(graph, "names"), ])
@@ -79,6 +79,7 @@ cut_off <- function(graph, threshold = NaN, threshold.quantile = NaN) {
 #'
 #' @param graph the graph to launder
 #' @param features the features to launder, as a list of matrices
+#' @export
 launder <- function(graph, features, threshold = NaN, threshold.quantile = NaN) {
     features <- common_features(features)
     graph <- induced.subgraph.by_name(graph, dimnames(features)[[2]])

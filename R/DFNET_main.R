@@ -24,7 +24,7 @@
 #' @param target the target vector
 #' @return a decision forest with one tree per module in modules
 DFNET_make_forest <- function(modules, features, target) {
-    modules_rle <- lapply(modules, function (m) rle(sort(m)))
+    modules_rle <- lapply(modules, function(m) rle(sort(m)))
 
     decision_trees <- lapply(modules_rle, function(m) {
         unique_nodes <- m$values
@@ -44,7 +44,7 @@ DFNET_make_forest <- function(modules, features, target) {
                 dimnames(mm_data)[[1]],
                 rep.int(dimnames(mm_data)[[2]], d[3])
             )
-            mm_data <- matrix(mm_data, d[1], d[2]*d[3], dimnames = dimnames)
+            mm_data <- matrix(mm_data, d[1], d[2] * d[3], dimnames = dimnames)
             weights <- rep.int(weights, d[3])
         }
 
@@ -120,7 +120,7 @@ DFNET_init <- function(graph, features, target,
     }
 
     seed <- DFNET_make_forest(selected_nodes, features, target)
-    last.perf = sapply(seed$trees, function(tree) {
+    last.perf <- sapply(seed$trees, function(tree) {
         performance(tree$predictions, target)
     })
 
@@ -160,7 +160,8 @@ DFNET_init <- function(graph, features, target,
 #'         graph,
 #'         features,
 #'         niter = 10,
-#'         offset = offset)
+#'         offset = offset
+#'     )
 #'     offset <- offset + 10
 #' }
 #' }
@@ -221,7 +222,7 @@ DFNET_iterate <- function(forest, graph, features, target,
             ifelse(good_enough, next_gen$modules.weights, last.modules.weights)
         last.trees <- ifelse(good_enough, next_gen$trees, last.trees)
         last.walk.depth <- ifelse(good_enough, walk.depth - 1, last.walk.depth)
-        last.walk.depth[last.walk.depth < min.walk_depth] = min.walk_depth
+        last.walk.depth[last.walk.depth < min.walk_depth] <- min.walk_depth
 
         if (is.na(keep.generations) || (keep.generations > 1)) {
             all.modules <- c(all.modules, last.modules)
@@ -276,19 +277,20 @@ DFNET_iterate <- function(forest, graph, features, target,
 #' # postprocess ...
 #' }
 DFNET <- function(DFNET_graph, ntrees = 100, niter = 200, init.mtry = NaN) {
-    if(is.data.frame(DFNET_graph[[2]])) {
+    if (is.data.frame(DFNET_graph[[2]])) {
         features <- as.matrix(DFNET_graph[[2]])
         target <- features[, which(dimnames(features)[[2]] == "target")]
         features <- features[, -which(dimnames(features)[[2]] == "target")]
     } else {
         features <- simplify2array(lapply(DFNET_graph[[2]], as.matrix))
-        target <- features[, which(dimnames(features)[[2]] == "target"),1]
-        features <- features[, -which(dimnames(features)[[2]] == "target"),]
+        target <- features[, which(dimnames(features)[[2]] == "target"), 1]
+        features <- features[, -which(dimnames(features)[[2]] == "target"), ]
     }
 
     forest <- DFNET_init(
         DFNET_graph[[1]], features, target,
-        ntrees = ntrees, walk.depth = init.mtry)
+        ntrees = ntrees, walk.depth = init.mtry
+    )
     forest <- DFNET_iterate(forest, DFNET_graph[[1]], features, target, niter = niter)
     return(list(
         DFNET_graph = DFNET_graph, DFNET_trees = forest$trees,

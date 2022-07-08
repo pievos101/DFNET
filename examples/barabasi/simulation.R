@@ -3,12 +3,15 @@ library(DFNET)
 source("graph.R")
 
 input <- NULL
-while(is.null(input)) {
-    tryCatch({
-        input <- simple_input_graph(n.nodes=20)
-    }, error = function(e) {
-        message("failed to create a graph, retrying...")
-    })
+while (is.null(input)) {
+    tryCatch(
+        {
+            input <- simple_input_graph(n.nodes = 20)
+        },
+        error = function(e) {
+            message("failed to create a graph, retrying...")
+        }
+    )
 }
 
 graph <- input$graph
@@ -30,7 +33,7 @@ umi <- unique_module_importance(graph, forest$modules, edge_imp, tree_imp)
 by_importance <- order(umi$table[, "total"], decreasing = TRUE)
 detected_module <- unlist(umi$modules[by_importance][1])
 
-print(head(umi$table[by_importance,]))
+print(head(umi$table[by_importance, ]))
 print(unique(sort(input$module)))
 
 edgelist <- as_edgelist(graph, names = FALSE)
@@ -47,7 +50,7 @@ for (e in 1:dim(edgelist)[1]) {
 
 plot(
     graph,
-    edge.width=exp(edge_imp + 1), edge.color = color,
+    edge.width = exp(edge_imp + 1), edge.color = color,
     vertex.shape = "none",
     # use numeric labels again
     vertex.label = 1:length(V(graph)),
