@@ -49,7 +49,7 @@ DFNET_make_forest <- function(modules, features, target) {
         }
 
         # Perform feature selection
-        ranger(
+        ranger::ranger(
             x = mm_data,
             y = target,
             split.select.weights = weights / sum(weights),
