@@ -38,6 +38,28 @@ flatten2ranger <- function(data, cols) {
     }
 }
 
+#' Higher-order function to test predictors against data and target.
+#'
+#' @param data The data to use for testing
+#' @param target The data to use for testing
+#' @param metric The metric to use, a function taking (target, actual).
+#' @param do.predict If TRUE (the default), run \code{predict} using the
+#' predictor, otherwise access its \code{$predictions} directly.
+#' @return a function which takes a predictor and evaluates \code{metric}
+#' with \code{target} and the predictions of \code{predictor} on \code{data}.
+tester <- function(data, target, metric = ModelMetrics::auc,
+                   do.predict = TRUE) {
+    if (do.predict) {
+        function(predictor) {
+            metric(target, predict(predictor, flatten2ranger(data))$predictions)
+        }
+    } else {
+        function(predictor) {
+            metric(target, predictor$predictions)
+        }
+    }
+}
+
 #' Extract the multi-modal target vector from \code{features}
 #'
 #' @param features potentially multi-modal features as a matrix

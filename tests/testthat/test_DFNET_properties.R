@@ -73,6 +73,13 @@ gen.graph_and_target <-
         }
     )
 
+gen.test_metric <- gen.choice(
+    ModelMetrics::auc,
+    ModelMetrics::precision,
+    ModelMetrics::recall,
+    ModelMetrics::f1Score
+)
+
 # Test parameters, such as number of trees or iterations
 gen.test_niter <-
     gen.element(getOption("test_DFNET_properties.niter", 10:30))
@@ -125,26 +132,70 @@ test_that("DFNET improves performance", {
         list(
             gf = gen.graph_and_target,
             niter = gen.test_niter,
-            ntrees = gen.test_ntrees
+            ntrees = gen.test_ntrees,
+            metric = gen.test_metric,
+            do.predict = gen.choice(TRUE, FALSE)
         ),
-        function(gf, niter, ntrees) {
+        function(gf, niter, ntrees, metric, do.predict) {
             graph <- gf$graph
             features <- gf$features
             target <- gf$target
 
-            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
-            state1 <- DFNET_iterate(state0, graph, features, target, niter)
+            p <- tester(features, target, metric, do.predict)
+
+            state0 <- DFNET_init(
+                graph, features, target,
+                ntrees = ntrees, performance = p
+            )
+            state1 <- DFNET_iterate(
+                state0, graph, features, target, niter,
+                performance = p
+            )
 
             expect_true(
                 all(performance(state0) <= performance(state1)),
                 label = "no worse after iteration"
             )
             # Theoretically, this may fail if DFNET_init creates an optimal
-            # configuration (unlikely)
-            expect_true(
-                any(performance(state0) < performance(state1)),
-                label = "better after iteration"
+            # configuration (unlikely).  In addition, some metrics appear
+            # harder to optimize than others.
+            if (test_flaky) {
+                expect_true(
+                    any(performance(state0) < performance(state1)),
+                    label = "better after iteration"
+                )
+            }
+        }
+    )
+})
+
+test_that("DFNET performance uses target metric", {
+    forall(
+        list(
+            gf = gen.graph_and_target,
+            niter = gen.test_niter,
+            ntrees = gen.test_ntrees,
+            metric = gen.test_metric,
+            do.predict = gen.choice(TRUE, FALSE)
+        ),
+        function(gf, niter, ntrees, metric, do.predict) {
+            graph <- gf$graph
+            features <- gf$features
+            target <- gf$target
+
+            p <- tester(features, target, metric, do.predict)
+
+            state0 <- DFNET_init(
+                graph, features, target,
+                ntrees = ntrees, performance = p
             )
+            state1 <- DFNET_iterate(
+                state0, graph, features, target, niter,
+                keep.generations = 1, performance = p
+            )
+
+            expect_identical(performance(state0), sapply(state0$trees, p))
+            expect_identical(performance(state1), sapply(state1$trees, p))
         }
     )
 })
@@ -154,22 +205,36 @@ test_that("DFNET adds up", {
         list(
             gf = gen.graph_and_target,
             niter = gen.test_c_small_niter,
-            ntrees = gen.test_ntrees
+            ntrees = gen.test_ntrees,
+            metric = gen.test_metric,
+            do.predict = gen.choice(FALSE) # XXX: predict() invokes randomness
         ),
-        function(gf, niter, ntrees) {
+        function(gf, niter, ntrees, metric, do.predict) {
             graph <- gf$graph
             features <- gf$features
             target <- gf$target
 
-            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
+            p <- tester(features, target, metric, do.predict)
+
+            state0 <- DFNET_init(
+                graph, features, target,
+                ntrees = ntrees,
+                performance = p
+            )
             state1 <- state0
 
             saved.seed <- .Random.seed
             for (iter in niter) {
-                state0 <- DFNET_iterate(state0, graph, features, target, iter)
+                state0 <- DFNET_iterate(
+                    state0, graph, features, target, iter,
+                    performance = p
+                )
             }
             assign(".Random.seed", saved.seed, envir = globalenv())
-            state1 <- DFNET_iterate(state1, graph, features, target, sum(niter))
+            state1 <- DFNET_iterate(
+                state1, graph, features, target, sum(niter),
+                performance = p
+            )
             expect_equal(state0$modules, state1$modules)
             expect_equal(performance(state0), performance(state1))
         }
