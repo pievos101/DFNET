@@ -79,8 +79,8 @@ DFNET_make_forest <- function(modules, features, target) {
 #' and each following iteration
 #' @param walk.depth how many nodes should be selected per tree.
 #' If not a number, \code{ceiling(sqrt(length(V(graph))))} will be used instead.
-#' @param performance a function to call with the predictions and target to
-#' estimate the performance of a decision tree.
+#' @param performance a function to call with a decision tree as argument to
+#' estimate that tree's performance.
 #' @return an initialized \code{DFNET::forest}.
 #'
 #' A \code{DFNET::forest} is a list of shape \code{trees, modules},
@@ -93,7 +93,7 @@ DFNET_make_forest <- function(modules, features, target) {
 #' result of \code{performance} of each tree w.r.t. \code{target}.
 DFNET_init <- function(graph, features, target,
                        ntrees = 100, walk.depth = NaN,
-                       performance = DFNET:::area_under_curve) {
+                       performance = NULL) {
     nodes <- V(graph)
     n.nodes <- length(nodes)
 
@@ -101,6 +101,12 @@ DFNET_init <- function(graph, features, target,
         walk.depth <- ceiling(sqrt(n.nodes))
     }
     walk.depth <- rep_len(walk.depth, ntrees)
+    if (is.null(performance)) {
+        performance <- function(tree) {
+            ModelMetrics::auc(target, tree$predictions)
+        }
+    }
+
 
     count <- 1
     selected_nodes <- list()
@@ -120,9 +126,7 @@ DFNET_init <- function(graph, features, target,
     }
 
     seed <- DFNET_make_forest(selected_nodes, features, target)
-    last.perf <- sapply(seed$trees, function(tree) {
-        performance(tree$predictions, target)
-    })
+    last.perf <- sapply(seed$trees, performance)
 
     return(
         structure(
@@ -145,8 +149,8 @@ DFNET_init <- function(graph, features, target,
 #' @param niter the number of iterations to run.
 #' @param offset an offset for the iteration count (used for logging only)
 #' @param min.walk_depth the minimal random walk depth in each iteration
-#' @param performance a function to call with the predictions and target to
-#' estimate the performance of a decision tree.
+#' @param performance a function to call with a decision tree as argument to
+#' estimate that tree's performance.
 #' @param keep.generations the number of generations to keep after iterating,
 #' defaults to all generations
 #' @return the updated \code{DFNET::forest}.
@@ -168,7 +172,7 @@ DFNET_init <- function(graph, features, target,
 #'
 DFNET_iterate <- function(forest, graph, features, target,
                           niter = 200, offset = 0, min.walk_depth = 2,
-                          performance = DFNET:::area_under_curve,
+                          performance = NULL,
                           keep.generations = NA) {
     if (offset < 0 || niter < 0) {
         stop("both offset and niter must be positive")
@@ -180,6 +184,12 @@ DFNET_iterate <- function(forest, graph, features, target,
         stop("need to keep at least one generation")
     }
 
+    if (is.null(performance)) {
+        performance <- function(tree) {
+            ModelMetrics::auc(target, tree$predictions)
+        }
+    }
+
     ntrees <- attr(forest, "generation_size")
     last.walk.depth <- attr(forest, "walk.depth")
 
@@ -189,9 +199,7 @@ DFNET_iterate <- function(forest, graph, features, target,
     last.trees <- tail(all.trees, ntrees)
     last.modules <- tail(all.modules, ntrees)
     last.modules.weights <- tail(all.modules.weights, ntrees)
-
-    tree_performance <- function(tree) performance(tree$predictions, target)
-    last.perf <- sapply(last.trees, tree_performance)
+    last.perf <- sapply(last.trees, performance)
 
     iter.min <- offset + 1
     iter.max <- offset + niter
@@ -213,7 +221,7 @@ DFNET_iterate <- function(forest, graph, features, target,
         })
 
         next_gen <- DFNET_make_forest(modules, features, target)
-        perf <- sapply(next_gen$trees, tree_performance)
+        perf <- sapply(next_gen$trees, performance)
 
         good_enough <- perf >= last.perf
 

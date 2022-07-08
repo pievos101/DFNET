@@ -1,5 +1,4 @@
 import(methods)
-import(pROC)
 
 importFrom("igraph", "V", "E")
 
@@ -13,6 +12,5 @@ export(DFNET_modules)
 export(launder)
 export(DFNET_calc_feature_importance)
 export(DFNET_predict)
-export(DFNET_performance)
 export(DFNET_preprocess)
 export(DFNET_explain)

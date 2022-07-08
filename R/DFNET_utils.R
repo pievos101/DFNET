@@ -16,48 +16,6 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' Calculate the confusion matrix, accuracy, and other preformance metrics of
-#' a DFNET classifier.
-#'
-#' @param prediction the predicted values
-#' @param reference the actual values
-#' @return the confusion matrix between \code{prediction} and \code{reference},
-#' along with some metrics.
-#' @examples
-#' \dontrun{
-#' classifier <- DFNET(training_graph)
-#' prediction <- DFNET_predict(classifier, test_graph)
-#' target <- ground_truth(test_graph)
-#' perf <- DFNET_performance(prediction, target)
-#' }
-DFNET_performance <- function(prediction, reference) {
-    require(caret)
-    require(e1071)
-
-    res <- confusionMatrix(as.factor(pred),
-        as.factor(reference),
-        mode = "prec_recall",
-        positive = "1"
-    )
-
-    return(res)
-}
-
-#' Calculate the area under curve w.r.t. \code{target} for the predictions made
-#' by various decision trees.
-#'
-#' @param predictions the predictions
-#' @param target the target vector optimized for
-#' @return a vector of AUC values
-area_under_curve <- function(predictions, target) {
-    return(
-        pROC::auc(
-            target, predictions,
-            na.rm = TRUE, levels = c(0, 1), direction = "<"
-        )[1]
-    )
-}
-
 #' Extract the multi-modal target vector from \code{features}
 #'
 #' @param features potentially multi-modal features as a matrix

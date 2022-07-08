@@ -24,7 +24,7 @@ forest <- DFNET_iterate(forest, graph, features, target, niter = 10)
 # XXX: public metrics
 tree_imp <- sapply(
     forest$trees,
-    function(tree) DFNET:::area_under_curve(tree$predictions, target)
+    function(tree) ModelMetrics::auc(target, tree$predictions)
 )
 edge_imp <- edge_importance(graph, forest$trees, tree_imp)
 print(edge_imp)

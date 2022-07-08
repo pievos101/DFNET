@@ -63,7 +63,7 @@ DFNET_edge_importance <- function(DFNET_graph, DFNET_object, parallel = FALSE) {
     mmt <- multi_modal_target(features)
     scores <- sapply(
         trees,
-        function(tree) area_under_curve(tree$predictions, mmt$target)
+        function(tree) ModelMetrics::auc(mmt$target, tree$predictions)
     )
 
     if (parallel) {
