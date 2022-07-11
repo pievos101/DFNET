@@ -24,6 +24,7 @@
 #' @param tree_importances the importance scores assigned to each decision tree
 #' in the forest
 #' @param mc.cores how many cores to use in parallel
+#' @export
 #' @return the accumulated edge importance and total importance of each module.
 module_importance <- function(graph, modules, edge_importances,
                               tree_importances, mc.cores = 1) {
@@ -58,6 +59,7 @@ module_importance <- function(graph, modules, edge_importances,
 #' in the forest
 #' @param mc.cores how many cores to use in parallel
 #' @param collapse how accumulate multiple values per module
+#' @export
 #' @return the collapsed tree and edge importances of each unique module, as
 #' well as their sum.
 unique_module_importance <- function(graph, modules, edge_importances,

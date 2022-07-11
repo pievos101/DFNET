@@ -47,6 +47,7 @@ flatten2ranger <- function(data, cols) {
 #' predictor, otherwise access its \code{$predictions} directly.
 #' @return a function which takes a predictor and evaluates \code{metric}
 #' with \code{target} and the predictions of \code{predictor} on \code{data}.
+#' @importFrom stats predict
 tester <- function(data, target, metric = ModelMetrics::auc,
                    do.predict = TRUE) {
     if (do.predict) {

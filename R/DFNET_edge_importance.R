@@ -22,6 +22,7 @@
 #' @param trees The decision trees returned by DFNET iterations
 #' @param tree_importances Numeric importance scores assigned to each tree
 #' @param mc.cores how many cores to use in parallel
+#' @export
 #' @return the importance of each edge in \code{graph} w.r.t. \code{trees}.
 edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
     tree_vars <- lapply(

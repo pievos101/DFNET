@@ -20,6 +20,7 @@
 #'
 #' @param features a list of feature matrices with equal rows but possibly
 #' unequal columns
+#' @export
 #' @return the common features (as per column names), simplified to an array.
 common_features <- function(features) {
     feature.names <- lapply(features, colnames)
@@ -37,6 +38,7 @@ common_features <- function(features) {
 #'
 #' @param features an array of features
 #' @param graph an igraph
+#' @export
 #' @return \code{features} reduced to columns whose names appear in
 #' \code{graph}
 graphed_features <- function(features, graph) {
@@ -62,6 +64,8 @@ induced.subgraph.by_name <- function(graph, names) {
 #' @param threshold the minimal weight of an edge to be kept
 #' @param threshold.quantile same as threshold, but derived as a quantile
 #' of the edge weights
+#' @importFrom igraph E
+#' @export
 #' @return \code{graph} with edges whose weight is lower than \code{threshold}
 #' removed.  If no threshold is given, return graph as-is.
 cut_off <- function(graph, threshold = NaN, threshold.quantile = NaN) {

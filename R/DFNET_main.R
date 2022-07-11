@@ -67,6 +67,8 @@ DFNET_make_forest <- function(modules, features, target) {
 #' If not a number, \code{ceiling(sqrt(length(V(graph))))} will be used instead.
 #' @param performance a function to call with a decision tree as argument to
 #' estimate that tree's performance.
+#' @importFrom igraph V
+#' @export
 #' @return an initialized \code{DFNET.forest}.
 #'
 #' A \code{DFNET.forest} is a list of shape \code{trees, modules},
@@ -138,6 +140,8 @@ DFNET_init <- function(graph, features, target,
 #' @param performance a function to call with a decision tree as argument to
 #' estimate that tree's performance.
 #' @return the updated \code{DFNET.forest}.
+#' @importFrom utils tail
+#' @export
 #' @examples
 #' \dontrun{
 #' forest <- DFNET_init(graph, features, ...)
@@ -243,6 +247,9 @@ DFNET_iterate <- function(forest, graph, features, target,
 #' @param n.generations the number of generations to keep
 #' @return the first \code{n.generations} generations worth of modules
 #' and trees.
+#' @method head DFNET.forest
+#' @importFrom utils head
+#' @export
 head.DFNET.forest <- function(forest, n.generations = 6L) {
     n.trees <- attr(forest, "generation_size")
     old.modules.weights <- head(
@@ -270,6 +277,9 @@ head.DFNET.forest <- function(forest, n.generations = 6L) {
 #' @param n.generations the number of generations to keep
 #' @return the last \code{n.generations} generations worth of modules
 #' and trees.
+#' @method tail DFNET.forest
+#' @importFrom utils tail
+#' @export
 tail.DFNET.forest <- function(forest, n.generations = 6L) {
     n.trees <- attr(forest, "generation_size")
     return(structure(
@@ -302,6 +312,9 @@ tail.DFNET.forest <- function(forest, n.generations = 6L) {
 #' # train ...
 #' prediction <- predict(forest, features[test_ids, ])
 #' }
+#' @method predict DFNET.forest
+#' @importFrom stats predict
+#' @export
 predict.DFNET.forest <- function(forest, data) {
     pred <- matrix(NaN, length(forest$trees), dim(data)[1])
     data <- flatten2ranger(data)
