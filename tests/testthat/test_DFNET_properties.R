@@ -358,3 +358,42 @@ test_that("DFNET may prune trees", {
         }
     )
 })
+
+test_that("DFNET predicts data", {
+    forall(
+        list(
+            gf = gen.graph_and_target,
+            niter = gen.test_niter,
+            ntrees = gen.test_ntrees
+        ),
+        function(gf, niter, ntrees) {
+            graph <- gf$graph
+            features <- gf$features
+            target <- gf$target
+
+            forder <- sample(dim(features)[1])
+            train_ids <- head(forder, floor(length(forder) * 0.8))
+            test_ids <- tail(forder, -floor(length(forder) * 0.8))
+
+            forest <- DFNET_init(
+                graph,
+                features[train_ids, ], target[train_ids],
+                ntrees = ntrees
+            )
+            forest <- DFNET_iterate(
+                forest, graph,
+                features[train_ids, ], target[train_ids],
+                niter
+            )
+
+            prediction <- predict(forest, features[test_ids, ])
+            expect_equal(length(prediction), length(target[test_ids]))
+            given.labels <- unique(prediction)
+            allowed.labels <- sort(unique(c(NaN, target)))
+            expect_equal(
+                sort(union(given.labels, allowed.labels)),
+                allowed.labels
+            )
+        }
+    )
+})

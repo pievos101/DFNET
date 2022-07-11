@@ -67,9 +67,9 @@ DFNET_make_forest <- function(modules, features, target) {
 #' If not a number, \code{ceiling(sqrt(length(V(graph))))} will be used instead.
 #' @param performance a function to call with a decision tree as argument to
 #' estimate that tree's performance.
-#' @return an initialized \code{DFNET::forest}.
+#' @return an initialized \code{DFNET.forest}.
 #'
-#' A \code{DFNET::forest} is a list of shape \code{trees, modules},
+#' A \code{DFNET.forest} is a list of shape \code{trees, modules},
 #' where \code{trees} are the decision trees created for detected \code{modules},
 #' and \code{performance} is their performance as per the input metric.
 #'
@@ -117,7 +117,7 @@ DFNET_init <- function(graph, features, target,
     return(
         structure(
             seed,
-            class = "DFNET::forest",
+            class = "DFNET.forest",
             generation_size = ntrees,
             walk.depth = walk.depth,
             last.performance = last.perf
@@ -139,7 +139,7 @@ DFNET_init <- function(graph, features, target,
 #' estimate that tree's performance.
 #' @param keep.generations the number of generations to keep after iterating,
 #' defaults to all generations
-#' @return the updated \code{DFNET::forest}.
+#' @return the updated \code{DFNET.forest}.
 #' @examples
 #' \dontrun{
 #' forest <- DFNET_init(graph, features, ...)
@@ -246,12 +246,41 @@ DFNET_iterate <- function(forest, graph, features, target,
                 modules = all.modules,
                 modules.weights = all.modules.weights
             ),
-            class = "DFNET::forest",
+            class = "DFNET.forest",
             generation_size = ntrees,
             walk.depth = last.walk.depth,
             last.performance = last.perf
         )
     )
+}
+
+#' Use a DFNET.forest to run predictions on data.
+#'
+#' @param forest A \code{DFNET.forest}.
+#' @param data the data to run predictions on
+#' @return a vector of predicted classes
+#' @examples
+#' \dontrun{
+#' smp_size <- floor(0.80 * dim(features)[1])
+#' train_ids <- sample(dim(features)[1], size = smp_size)
+#' test_ids <- (1:dim(features)[1])[-train_ids]
+#' forest <- DFNET_init(graph, features[train_ids, ])
+#' # train ...
+#' prediction <- predict(forest, features[test_ids, ])
+#' }
+predict.DFNET.forest <- function(forest, data) {
+    pred <- matrix(NaN, length(forest$trees), dim(data)[1])
+    data <- flatten2ranger(data)
+
+    for (count in 1:length(forest$trees)) {
+        pred[count, ] <- predict(forest$trees[[count]], data)$predictions
+    }
+
+    val <- apply(pred, 2, function(x) {
+        return(as.numeric(names(sort(table(x), decreasing = TRUE))[1]))
+    })
+    names(val) <- dimnames(data)[[1]]
+    return(val)
 }
 
 #' Construct a new decision forest and run some iterations on it.
