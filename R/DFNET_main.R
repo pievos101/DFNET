@@ -137,8 +137,6 @@ DFNET_init <- function(graph, features, target,
 #' @param min.walk_depth the minimal random walk depth in each iteration
 #' @param performance a function to call with a decision tree as argument to
 #' estimate that tree's performance.
-#' @param keep.generations the number of generations to keep after iterating,
-#' defaults to all generations
 #' @return the updated \code{DFNET.forest}.
 #' @examples
 #' \dontrun{
@@ -158,16 +156,11 @@ DFNET_init <- function(graph, features, target,
 #'
 DFNET_iterate <- function(forest, graph, features, target,
                           niter = 200, offset = 0, min.walk_depth = 2,
-                          performance = NULL,
-                          keep.generations = NA) {
+                          performance = NULL) {
     if (offset < 0 || niter < 0) {
         stop("both offset and niter must be positive")
     } else if (niter == 0) {
         return(forest)
-    }
-
-    if (!is.na(keep.generations) && keep.generations < 1) {
-        stop("need to keep at least one generation")
     }
 
     if (is.null(performance)) {
@@ -220,24 +213,11 @@ DFNET_iterate <- function(forest, graph, features, target,
         last.walk.depth <- ifelse(good_enough, walk.depth - 1, last.walk.depth)
         last.walk.depth[last.walk.depth < min.walk_depth] <- min.walk_depth
 
-        if (is.na(keep.generations) || (keep.generations > 1)) {
-            all.modules <- c(all.modules, last.modules)
-            all.modules.weights <- c(all.modules.weights, last.modules.weights)
-            all.trees <- c(all.trees, last.trees)
-        } else {
-            all.modules <- last.modules
-            all.modules.weights <- last.modules.weights
-            all.trees <- last.trees
-        }
+        all.modules <- c(all.modules, last.modules)
+        all.modules.weights <- c(all.modules.weights, last.modules.weights)
+        all.trees <- c(all.trees, last.trees)
     }
 
-    if (!is.na(keep.generations)) {
-        nkeep <- keep.generations * ntrees
-
-        all.modules <- tail(all.modules, nkeep)
-        all.modules.weights <- tail(all.modules.weights, nkeep)
-        all.trees <- tail(all.trees, nkeep)
-    }
 
     return(
         structure(
@@ -252,6 +232,60 @@ DFNET_iterate <- function(forest, graph, features, target,
             last.performance = last.perf
         )
     )
+}
+
+#' Return the first (= oldest) trees in the forest.
+#'
+#' This function should not be used to retrain the forest from an earlier
+#' branch.  It does not return \code{last.performance} and may return a wrong
+#' value for \code{walk.depth}.
+#' @param forest the original forest
+#' @param n.generations the number of generations to keep
+#' @return the first \code{n.generations} generations worth of modules
+#' and trees.
+head.DFNET.forest <- function(forest, n.generations = 6L) {
+    n.trees <- attr(forest, "generation_size")
+    old.modules.weights <- head(
+        forest$modules.weights,
+        n.generations * n.trees
+    )
+
+    structure(
+        list(
+            trees = head(forest$trees, n.generations * n.trees),
+            modules = head(forest$modules, n.generations * n.trees),
+            modules.weights = old.modules.weights
+        ),
+        class = "DFNET.forest",
+        generation_size = n.trees,
+        walk.depth = sapply(tail(old.modules.weights, n.trees), sum)
+    )
+}
+
+#' Return the last (= newest) trees in the forest.
+#'
+#' This function can be used to shrink the forest while training (since only
+#' the last generation will be used anyway).
+#' @param forest the original forest
+#' @param n.generations the number of generations to keep
+#' @return the last \code{n.generations} generations worth of modules
+#' and trees.
+tail.DFNET.forest <- function(forest, n.generations = 6L) {
+    n.trees <- attr(forest, "generation_size")
+    return(structure(
+        list(
+            trees = tail(forest$trees, n.generations * n.trees),
+            modules = tail(forest$modules, n.generations * n.trees),
+            modules.weights = tail(
+                forest$modules.weights,
+                n.generations * n.trees
+            )
+        ),
+        class = "DFNET.forest",
+        generation_size = n.trees,
+        walk.depth = attr(forest, "walk.depth"),
+        last.performance = attr(forest, "last.performance")
+    ))
 }
 
 #' Use a DFNET.forest to run predictions on data.

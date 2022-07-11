@@ -191,8 +191,9 @@ test_that("DFNET performance uses target metric", {
             )
             state1 <- DFNET_iterate(
                 state0, graph, features, target, niter,
-                keep.generations = 1, performance = p
+                performance = p
             )
+            state1 <- tail(state1, 1)
 
             expect_identical(performance(state0), sapply(state0$trees, p))
             expect_identical(performance(state1), sapply(state1$trees, p))
@@ -276,46 +277,11 @@ test_that("DFNET shrinks module weights", {
             features <- gf$features
             target <- gf$target
 
-            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
-            state1 <- DFNET_iterate(
-                state0, graph, features, target, niter,
-                keep.generations = 1
-            )
+            forest <- DFNET_init(graph, features, target, ntrees = ntrees)
+            forest <- DFNET_iterate(forest, graph, features, target, niter)
 
-            expect_true(
-                all(module_weights(state0) >= module_weights(state1)),
-                label = "no worse after iteration"
-            )
-            # Since the first round of DFNET does not actually decrement the
-            # walk depth, the following will often fail (especially after
-            # shrinking)
-            if (test_flaky) {
-                expect_true(
-                    any(module_weights(state0) > module_weights(state1)),
-                    label = "better after iteration"
-                )
-            }
-        }
-    )
-})
-
-test_that("DFNET shrinks module weights (manual selection)", {
-    forall(
-        list(
-            gf = gen.graph_and_target,
-            niter = gen.test_niter,
-            ntrees = gen.test_ntrees
-        ),
-        function(gf, niter, ntrees) {
-            graph <- gf$graph
-            features <- gf$features
-            target <- gf$target
-
-            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
-            state1 <- DFNET_iterate(state0, graph, features, target, niter)
-
-            weights0 <- module_weights(state0)
-            weights1 <- tail(module_weights(state1), ntrees)
+            weights0 <- module_weights(head(forest, 1))
+            weights1 <- module_weights(tail(forest, 1))
 
             expect_true(
                 all(weights0 >= weights1),
@@ -328,33 +294,6 @@ test_that("DFNET shrinks module weights (manual selection)", {
                     label = "better after iteration"
                 )
             }
-        }
-    )
-})
-
-test_that("DFNET may prune trees", {
-    forall(
-        list(
-            gf = gen.graph_and_target,
-            niter = gen.test_niter,
-            ntrees = gen.test_ntrees,
-            keep = gen.test_niter
-        ),
-        function(gf, niter, ntrees, keep) {
-            graph <- gf$graph
-            features <- gf$features
-            target <- gf$target
-
-            forest <- DFNET_init(graph, features, target, ntrees = ntrees)
-            forest <- DFNET_iterate(
-                forest, graph, features, target, niter,
-                keep.generations = keep
-            )
-
-            # XXX: We only validate lengths, not selections
-            expect_lte(length(forest$modules), ntrees * keep)
-            expect_lte(length(forest$trees), ntrees * keep)
-            expect_equal(length(forest$modules), length(forest$trees))
         }
     )
 })
