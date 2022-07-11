@@ -15,6 +15,16 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#' Calculate the importance of particular modules in the graph.
+#'
+#' @param graph the graph used for training
+#' @param modules the modules obtained by training
+#' @param edge_importances the importance scores assigned to each edge in the
+#' graph, e.g. by \code{edge_importance}.
+#' @param tree_importances the importance scores assigned to each decision tree
+#' in the forest
+#' @param mc.cores how many cores to use in parallel
+#' @return the accumulated edge importance and total importance of each module.
 module_importance <- function(graph, modules, edge_importances,
                               tree_importances, mc.cores = 1) {
     module_imp <- cbind(0, tree_importances)
@@ -38,6 +48,18 @@ module_importance <- function(graph, modules, edge_importances,
     return(module_imp)
 }
 
+#' Calculate the importance of each unique module.
+#'
+#' @param graph the graph used for training
+#' @param modules the modules obtained by training
+#' @param edge_importances the importance scores assigned to each edge in the
+#' graph, e.g. by \code{edge_importance}.
+#' @param tree_importances the importance scores assigned to each decision tree
+#' in the forest
+#' @param mc.cores how many cores to use in parallel
+#' @param collapse how accumulate multiple values per module
+#' @return the collapsed tree and edge importances of each unique module, as
+#' well as their sum.
 unique_module_importance <- function(graph, modules, edge_importances,
                                      tree_importances, mc.cores = 1,
                                      collapse = mean) {
