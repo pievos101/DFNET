@@ -105,7 +105,7 @@ launder <- function(graph, features, threshold = NaN, threshold.quantile = NaN) 
 #' are equal.  Should lie between 0 and 1.
 #' @param default.na as default, but applied if minimal or maximal value
 #' are NaN.  Not applicable if \code{na.rm} is true.
-#' @return the relativized vector alpha, such that
+#' @return the relativized vector \eqn{\alpha}, such that
 #' \eqn{x = (1-\alpha)\min(x) + \alpha\max(x)} holds w.r.t. floating point
 #' inaccuracies.
 relat <- function(x, na.rm = FALSE, default = 1, default.na = NaN) {
