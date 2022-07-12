@@ -17,7 +17,7 @@
 
 library(hedgehog)
 
-# DFNET_iter takes time, so let's only run few tests unless the user wants more
+# Training takes time, so let's only run few tests unless the user wants more
 if (is.null(getOption("hedgehog.tests"))) {
     options(hedgehog.tests = 20)
 }
@@ -130,10 +130,9 @@ test_that("No iteration means no iteration", {
             features <- gf$features
             target <- gf$target
 
-            state0 <- DFNET_init(graph, features, target, ntrees = ntrees)
-            state1 <- DFNET_iterate(state0, graph, features, target, 0)
+            forest <- train(, graph, features, target, 0, ntrees = ntrees)
 
-            expect_equal(state0$modules, state1$modules)
+            expect_equal(head(forest)$modules, tail(forest)$modules)
         }
     )
 })
@@ -154,11 +153,11 @@ test_that("DFNET improves performance", {
 
             p <- tester(features, target, metric, do.predict)
 
-            state0 <- DFNET_init(
-                graph, features, target,
+            state0 <- train(
+                NULL, graph, features, target, 0,
                 ntrees = ntrees, performance = p
             )
-            state1 <- DFNET_iterate(
+            state1 <- train(
                 state0, graph, features, target, niter,
                 performance = p
             )
@@ -196,11 +195,11 @@ test_that("DFNET performance uses target metric", {
 
             p <- tester(features, target, metric, do.predict)
 
-            state0 <- DFNET_init(
-                graph, features, target,
+            state0 <- train(
+                NULL, graph, features, target, 0,
                 ntrees = ntrees, performance = p
             )
-            state1 <- DFNET_iterate(
+            state1 <- train(
                 state0, graph, features, target, niter,
                 performance = p
             )
@@ -228,8 +227,8 @@ test_that("DFNET adds up", {
 
             p <- tester(features, target, metric, do.predict)
 
-            state0 <- DFNET_init(
-                graph, features, target,
+            state0 <- train(
+                NULL, graph, features, target, 0,
                 ntrees = ntrees,
                 performance = p
             )
@@ -237,13 +236,13 @@ test_that("DFNET adds up", {
 
             saved.seed <- .Random.seed
             for (iter in niter) {
-                state0 <- DFNET_iterate(
+                state0 <- train(
                     state0, graph, features, target, iter,
                     performance = p
                 )
             }
             assign(".Random.seed", saved.seed, envir = globalenv())
-            state1 <- DFNET_iterate(
+            state1 <- train(
                 state1, graph, features, target, sum(niter),
                 performance = p
             )
@@ -265,8 +264,7 @@ test_that("DFNET returns simplified modules", {
             features <- gf$features
             target <- gf$target
 
-            forest <- DFNET_init(graph, features, target, ntrees = ntrees)
-            forest <- DFNET_iterate(forest, graph, features, target, niter)
+            forest <- train(, graph, features, target, niter, ntrees = ntrees)
 
             expect_identical(
                 forest$modules,
@@ -288,8 +286,7 @@ test_that("DFNET shrinks module weights", {
             features <- gf$features
             target <- gf$target
 
-            forest <- DFNET_init(graph, features, target, ntrees = ntrees)
-            forest <- DFNET_iterate(forest, graph, features, target, niter)
+            forest <- train(, graph, features, target, niter, ntrees = ntrees)
 
             weights0 <- module_weights(head(forest, 1))
             weights1 <- module_weights(tail(forest, 1))
@@ -329,19 +326,15 @@ test_that("DFNET predicts data", {
                 train_features <- features[train_ids, ]
                 test_features <- features[test_ids, ]
             } else {
-                train_features <- features[train_ids, ,]
-                test_features <- features[test_ids, ,]
+                train_features <- features[train_ids, , ]
+                test_features <- features[test_ids, , ]
             }
 
-            forest <- DFNET_init(
-                graph,
+            forest <- train(
+                NULL, graph,
                 train_features, target[train_ids],
+                niter,
                 ntrees = ntrees
-            )
-            forest <- DFNET_iterate(
-                forest, graph,
-                train_features, target[train_ids],
-                niter
             )
 
             prediction <- predict(forest, test_features)
