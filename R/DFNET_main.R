@@ -168,6 +168,7 @@ train <- function(forest, graph, features, target,
                   niter = 200, offset = 0, min.walk.depth = 2,
                   ntrees = 100, initial.walk.depth = NaN,
                   performance = NULL) {
+    stopifnot(niter >= 0, offset >= 0)
     if (missing(forest) || is.null(forest)) {
         forest <- init(
             graph, features, target,
@@ -176,9 +177,7 @@ train <- function(forest, graph, features, target,
         )
     }
 
-    if (offset < 0 || niter < 0) {
-        stop("both offset and niter must be positive")
-    } else if (niter == 0) {
+    if (niter == 0) {
         return(forest)
     }
 
