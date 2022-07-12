@@ -52,7 +52,7 @@ graphed_features <- function(features, graph) {
 induced.subgraph.by_name <- function(graph, names) {
     igraph::induced.subgraph(
         graph,
-        na.omit(match(names, igraph::vertex_attr(graph, "names")))
+        stats::na.omit(match(names, igraph::vertex_attr(graph, "names")))
     )
 }
 
@@ -72,7 +72,7 @@ cut_off <- function(graph, threshold = NaN, threshold.quantile = NaN) {
     weights <- igraph::edge_attr(graph, "weights")
 
     if (is.na(threshold)) {
-        threshold <- quantile(weights, probs = threshold.quantile)
+        threshold <- stats::quantile(weights, probs = threshold.quantile)
     }
 
     igraph::delete.edges(graph, E(graph)[which(weights < threshold)])
