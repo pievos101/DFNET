@@ -23,13 +23,22 @@ if (is.null(getOption("hedgehog.tests"))) {
 }
 
 ## Utility functions
-sample.graph <- function(n.nodes, power, n.samples) {
+sample.graph <- function(n.nodes, power, n.samples, n.features) {
     g <- igraph::sample_pa(n.nodes, power = power, directed = FALSE)
-    features <- matrix(
-        sample(0:1, n.samples * n.nodes, replace = TRUE),
-        n.samples, n.nodes
-    )
-    colnames(features) <- c(paste("N_", 1:n.nodes, sep = ""))
+    features <- NULL
+    if (n.features == 0) {
+        features <- matrix(
+            sample(0:1, n.samples * n.nodes, replace = TRUE),
+            n.samples, n.nodes
+        )
+        colnames(features) <- c(paste("N_", 1:n.nodes, sep = ""))
+    } else {
+        features <- array(
+            sample(0:1, n.samples * n.nodes * n.features, replace = TRUE),
+            c(n.samples, n.nodes, n.features),
+            dimnames = list(NULL, c(paste("N_", 1:n.nodes, sep = ""), NULL))
+        )
+    }
     list(graph = g, features = features)
 }
 
@@ -44,7 +53,8 @@ gen.graph <-
                 sample.graph(
                     params$n.nodes,
                     params$power,
-                    params$n.samples
+                    params$n.samples,
+                    params$n.features
                 )
             })
         },
@@ -52,9 +62,10 @@ gen.graph <-
             list(
                 gen.element(seq(10, 30)),
                 gen.element(seq(0.5, 3, by = 0.1)),
-                gen.element(seq(100, 300, by = 10))
+                gen.element(seq(100, 300, by = 10)),
+                gen.element(0:3)
             ),
-            names = c("n.nodes", "power", "n.samples")
+            names = c("n.nodes", "power", "n.samples", "n.features")
         )
     )
 
@@ -314,18 +325,26 @@ test_that("DFNET predicts data", {
             train_ids <- head(forder, floor(length(forder) * 0.8))
             test_ids <- tail(forder, -floor(length(forder) * 0.8))
 
+            if (length(dim(features)) == 2) {
+                train_features <- features[train_ids, ]
+                test_features <- features[test_ids, ]
+            } else {
+                train_features <- features[train_ids, ,]
+                test_features <- features[test_ids, ,]
+            }
+
             forest <- DFNET_init(
                 graph,
-                features[train_ids, ], target[train_ids],
+                train_features, target[train_ids],
                 ntrees = ntrees
             )
             forest <- DFNET_iterate(
                 forest, graph,
-                features[train_ids, ], target[train_ids],
+                train_features, target[train_ids],
                 niter
             )
 
-            prediction <- predict(forest, features[test_ids, ])
+            prediction <- predict(forest, test_features)
             expect_equal(length(prediction), length(target[test_ids]))
             given.labels <- unique(prediction)
             allowed.labels <- sort(unique(c(NaN, target)))
