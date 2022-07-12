@@ -16,6 +16,28 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#' Flatten data, a potentially 3-dimensional array, to a matrix to use
+#' in ranger calls.
+#' @param data the feature matrix or array
+#' @param cols an optional column selection
+#' @return the flattened data matrix
+flatten2ranger <- function(data, cols) {
+    if (length(dim(data)) == 2) {
+        return(data[, cols])
+    } else if (dim(data)[3] == 1) {
+        return(as.matrix(data[, cols, 1]))
+    } else {
+        .data <- data[, cols, ]
+        d <- dim(.data)
+        # XXX: repeats colnames per mode, strips mode name
+        dimnames <- list(
+            dimnames(.data)[[1]],
+            rep.int(dimnames(.data)[[2]], d[3])
+        )
+        return(matrix(.data, d[1], d[2] * d[3], dimnames = dimnames))
+    }
+}
+
 #' Extract the multi-modal target vector from \code{features}
 #'
 #' @param features potentially multi-modal features as a matrix

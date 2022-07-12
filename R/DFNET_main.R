@@ -31,22 +31,8 @@ DFNET_make_forest <- function(modules, features, target) {
         unique_nodes_weights <- m$lengths
         weights <- unique_nodes_weights
 
-        if (length(dim(features)) == 2) {
-            mm_data <- as.matrix(features[, unique_nodes])
-        } else if (dim(features)[3] == 1) {
-            # unimodal data in 3D array, would otherwise collapse
-            mm_data <- as.matrix(features[, unique_nodes, 1])
-        } else {
-            mm_data <- features[, unique_nodes, ]
-            d <- dim(mm_data)
-            # XXX: repeats colnames per mode, strips mode name
-            dimnames <- list(
-                dimnames(mm_data)[[1]],
-                rep.int(dimnames(mm_data)[[2]], d[3])
-            )
-            mm_data <- matrix(mm_data, d[1], d[2] * d[3], dimnames = dimnames)
-            weights <- rep.int(weights, d[3])
-        }
+        mm_data <- flatten2ranger(features, unique_nodes)
+        weights <- rep_len(weights, dim(mm_data)[2])
 
         # Perform feature selection
         ranger::ranger(
