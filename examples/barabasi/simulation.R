@@ -18,8 +18,7 @@ graph <- input$graph
 features <- input$features
 target <- input$target
 
-forest <- DFNET_init(graph, features, target, ntrees = 100)
-forest <- DFNET_iterate(forest, graph, features, target, niter = 10)
+forest <- train(, graph, features, target, ntrees = 100, niter = 10)
 
 # XXX: public metrics
 tree_imp <- sapply(

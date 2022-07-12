@@ -17,10 +17,9 @@ n.forests <- 50
 niter <- c(2, 3, 5, 10, 30, 50)
 cum_niter <- c(0, cumsum(niter))
 
-message("allocating forests, this may take some time...")
-forests <- lapply(1:n.forests, function(x) {
-    DFNET_init(input$graph, input$features, input$target)
-})
+## message("allocating forests, this may take some time...")
+forests <- lapply(1:n.forests, function(x) NULL)
+
 coverage <- matrix(NaN, n.forests, length(niter))
 iou <- matrix(NaN, n.forests, length(niter))
 auc <- matrix(NaN, n.forests, length(niter))
@@ -34,13 +33,14 @@ for (xx in 1:length(niter)) {
     message(xx, " of ", length(niter), " done! ----------------")
 
     for (yy in 1:n.forests) {
-        forests[[yy]] <- DFNET_iterate(
+        forests[[yy]] <- train(
             forests[[yy]],
             input$graph, input$features, input$target,
-            niter = niter[xx], offset = cum_niter[xx],
-            # keep only the last generation
-            keep.generations = 1
+            niter = niter[xx], offset = cum_niter[xx]
         )
+        # keep only the last generation
+        # XXX: Why do we have to qualify DFNET.forest here???
+        forests[[yy]] <- tail(forests[[yy]], 1)
 
         tree_imp <- attr(forests[[yy]], "last.performance")
         edge_imp <- edge_importance(input$graph, forests[[yy]]$trees, tree_imp)
