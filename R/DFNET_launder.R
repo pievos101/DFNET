@@ -16,12 +16,16 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' Extract common features from raw multi-omic data.
+#' Common features in raw data
 #'
-#' @param features a list of feature matrices with equal rows but possibly
-#' unequal columns
+#' Extracts common features from heterogenous data and simplifies them into a
+#' three-dimensional array, thus making them homogenous.
+#'
+#' @param features list of matrices.
 #' @export
-#' @return the common features (as per column names), simplified to an array.
+#' @return A three-dimensional array containing the common features
+#' (as per column names).
+#' @family data laundering techniques
 common_features <- function(features) {
     feature.names <- lapply(features, colnames)
     common.features.names <- Reduce(intersect, feature.names)
@@ -34,13 +38,18 @@ common_features <- function(features) {
     return(simplify2array(common.features))
 }
 
-#' Reduce features to the nodes of a graph.
+#' Retain meaningful features
 #'
-#' @param features an array of features
-#' @param graph an igraph
+#' Trims \code{features} so that only columns whose names match the vertex names
+#' in \code{graph} are retained.
+#'
+#' @param features matrix or 3D array.
+#' @param graph an igraph.
 #' @export
-#' @return \code{features} reduced to columns whose names appear in
-#' \code{graph}
+#' @return A matrix or 3D array (as features \code{features}), reduced and
+#' reshaped such that only features belonging to the vertices in \code{graph}
+#' appear in the order given by \code{graph}.
+#' @family data laundering techniques
 graphed_features <- function(features, graph) {
     if (length(dim(features)) == 2) {
         return(features[, igraph::vertex_attr(graph, "names")])
@@ -49,8 +58,18 @@ graphed_features <- function(features, graph) {
     }
 }
 
-#' Like \code{induced.subgraph} from the igraph package, but using names rather
-#' than vertex IDs.
+#' Subgraph of a graph
+#'
+#' Creates a subgraph of a graph, containing only the specified vertices and
+#' the edges between them.
+#'
+#' @param graph The original graph.
+#' @param names vector of strings. The names of the vertices which will form
+#' the subgraph.
+#' @return The induced subraph.
+#' @seealso \link[igraph:induced.subgraph]{igraph::induced_subgraph()}, which
+#' this procedure uses internally.
+#' @family data laundering techniques
 induced.subgraph.by_name <- function(graph, names) {
     igraph::induced.subgraph(
         graph,
@@ -58,16 +77,20 @@ induced.subgraph.by_name <- function(graph, names) {
     )
 }
 
-#' Cut off edges below a certain threshold.
+#' Remove lightweight edges
 #'
-#' @param graph an igraph
-#' @param threshold the minimal weight of an edge to be kept
-#' @param threshold.quantile same as threshold, but derived as a quantile
-#' of the edge weights
+#' Cuts off edges below a threshold.
+#'
+#' @param graph The original graph
+#' @param threshold numeric. The minimal weight of an edge to keep.
+#' @param threshold.quantile numeric. The minimal relative weight of an edge
+#' to keep with respect to all other edge weights.
 #' @importFrom igraph E
 #' @export
-#' @return \code{graph} with edges whose weight is lower than \code{threshold}
-#' removed.  If no threshold is given, return graph as-is.
+#' @return A subgraph of \code{graph}, where edges have been removed according
+#' to the given threshold. If no threshold is given \code{graph} is returned
+#' unchanged.
+#' @family data laundering techniques
 cut_off <- function(graph, threshold = NaN, threshold.quantile = NaN) {
     if (is.na(threshold) && is.na(threshold.quantile)) {
         return(graph)
@@ -82,11 +105,17 @@ cut_off <- function(graph, threshold = NaN, threshold.quantile = NaN) {
     igraph::delete.edges(graph, E(graph)[which(weights < threshold)])
 }
 
-#' Launder the input graph and features.
+#' Data laundering
 #'
-#' @param graph the graph to launder
-#' @param features the features to launder, as a list of matrices
+#' Launders input graph and features.
+#'
+#' @param graph The original graph.
+#' @param features list of matrices.
+#' @param threshold see \link{cut_off}.
+#' @param threshold.quantile see \link{cut_off}.
 #' @export
+#' @return A list \code{graph, features} with the laundered graph and features.
+#' @family data laundering techniques
 launder <- function(graph, features, threshold = NaN, threshold.quantile = NaN) {
     features <- common_features(features)
     graph <- induced.subgraph.by_name(graph, dimnames(features)[[2]])
@@ -96,18 +125,24 @@ launder <- function(graph, features, threshold = NaN, threshold.quantile = NaN) 
     return(list(graph = graph, features = features))
 }
 
-#' Relativize a vector, so that all of its elements are between 0 and 1.
+#' Relativize data
 #'
-#' @param x the vector to relativize
-#' @param na.rm whether to remove NaNs from \code{x} when calculating
-#' minimal and maximal values
-#' @param default the default value(s) to use when all values in \code{x}
-#' are equal.  Should lie between 0 and 1.
-#' @param default.na as default, but applied if minimal or maximal value
-#' are NaN.  Not applicable if \code{na.rm} is true.
-#' @return the relativized vector \eqn{\alpha}, such that
+#' Maps the elements of a numeric vector to the interval [0:1].
+#'
+#' @param x numeric vector.
+#' @param na.rm logical. Should NaNs be removed from \code{x} when calculating
+#' minimal and maximal values?
+#' @param default numeric. The default value(s) to use when all values in
+#' \code{x} are equal. Should lie between 0 and 1.
+#' @param default.na numeric. As default, but applied if minimal or maximal
+#' value are NaN.  Not applicable if \code{na.rm} is true.
+#' @return The relativized vector \eqn{\alpha}, such that
 #' \eqn{x = (1-\alpha)\min(x) + \alpha\max(x)} holds w.r.t. floating point
 #' inaccuracies.
+#' @examples
+#' relat(1:3)
+#' relat(c(NaN, 2, 3, 4))
+#' relat(c(NaN, 2, 3, 4), na.rm = TRUE)
 relat <- function(x, na.rm = FALSE, default = 1, default.na = NaN) {
     x0 <- min(x, na.rm = na.rm)
     x1 <- max(x, na.rm = na.rm)
