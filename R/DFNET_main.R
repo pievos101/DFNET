@@ -16,15 +16,20 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' Use random forest algorithm to perform feature selection with respect to
-#' given modules.
+#' Decision tree learning from modules
 #'
-#' @param modules a list of modules (node vectors)
-#' @param features the (multi-modal) features to train on
-#' @param target the target vector
-#' @return a decision forest with one tree per module in modules
-DFNET_make_forest <- function(modules, features, target) {
-    modules_rle <- lapply(modules, function(m) rle(sort(m)))
+#' \code{learn_decisions} uses \code{ranger} to perform feature selection with
+#' respect to \code{raw_modules}.
+#'
+#' @param raw_modules list of numeric vectors. The raw modules.
+#' @param features numeric matrix or 3D array. The features to train on.
+#' @param target numeric vector. The target to train towards.
+#' @return A list of shape (\code{trees}, \code{modules},
+#' \code{modules.weights}), where \code{modules} are the sorted
+#' \code{raw_modules} with individual weights \code{modules.weights}, and
+#' \code{trees} contains one ranger decision tree per module.
+learn_decisions <- function(raw_modules, features, target) {
+    modules_rle <- lapply(raw_modules, function(m) rle(sort(m)))
 
     decision_trees <- lapply(modules_rle, function(m) {
         unique_nodes <- m$values
@@ -102,7 +107,7 @@ init <- function(graph, features, target,
         }
     }
 
-    seed <- DFNET_make_forest(selected_nodes, features, target)
+    seed <- learn_decisions(selected_nodes, features, target)
     last.perf <- sapply(seed$trees, performance)
 
     return(
@@ -217,7 +222,7 @@ train <- function(forest, graph, features, target,
             )
         })
 
-        next_gen <- DFNET_make_forest(modules, features, target)
+        next_gen <- learn_decisions(modules, features, target)
         perf <- sapply(next_gen$trees, performance)
 
         good_enough <- perf >= last.perf
