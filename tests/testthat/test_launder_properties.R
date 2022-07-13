@@ -131,3 +131,43 @@ test_that("launder washes data", {
         }
     )
 })
+
+test_that("relat = lerp^{-1}", {
+    forall(
+        gen.c(gen.int(100)),
+        function(xs) {
+            alpha <- relat(xs)
+            expect_equal((1 - alpha) * min(xs) + alpha * max(xs), xs)
+        }
+    )
+})
+
+test_that("relat handles NaN", {
+    forall(
+        list(
+            xs = gen.c(gen.element(1:100), from = 2),
+            dflt = gen.element(seq(0, 1, by = 0.1))
+        ),
+        function(xs, dflt) {
+            if (min(xs) == max(xs)) discard()
+            expect_equal(c(NaN, relat(xs)), relat(c(NaN, xs), na.rm = TRUE))
+            expect_true(all(is.na(relat(c(NaN, xs)))))
+            expect_true(
+                all(relat(c(NaN, xs), default.na = dflt) == dflt)
+            )
+        }
+    )
+})
+
+test_that("relat does not divide by 0", {
+    forall(
+        list(
+            x = gen.element(1:100), n = gen.element(1:100),
+            dflt = gen.element(seq(0, 1, by = 0.1))
+        ),
+        function(x, n, dflt) {
+            xs <- rep_len(x, n)
+            expect_true(all(relat(xs, default = dflt) == dflt))
+        }
+    )
+})
