@@ -84,6 +84,7 @@ init <- function(graph, features, target,
     if (is.na(walk.depth)) {
         walk.depth <- ceiling(sqrt(n.nodes))
     }
+    stopifnot(walk.depth > 0)
     walk.depth <- rep_len(walk.depth, ntrees)
     if (is.null(performance)) {
         performance <- function(tree) {
@@ -192,7 +193,7 @@ train <- function(forest, graph, features, target,
                   niter = 200, offset = 0, min.walk.depth = 2,
                   ntrees = 100, initial.walk.depth = NaN,
                   performance = NULL) {
-    stopifnot(niter >= 0, offset >= 0)
+    stopifnot(niter >= 0, offset >= 0, min.walk.depth >= 1)
     if (missing(forest) || is.null(forest)) {
         forest <- init(
             graph, features, target,
