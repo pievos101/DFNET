@@ -16,11 +16,13 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' Flatten data, a potentially 3-dimensional array, to a matrix to use
-#' in ranger calls.
-#' @param data the feature matrix or array
-#' @param cols an optional column selection
-#' @return the flattened data matrix
+#' Flatten multi-modal data for ranger calls.
+#'
+#' Produces a flat matrix from \code{data}, a potentially 3-dimensional array.
+#' @param data matrix or 3D array. The data to flatten.
+#' @param cols vector. The (optional) columns to use.
+#' @return A matrix containing \code{data} reduced to \code{cols}, with
+#' the third dimension inserted as extra columns.
 flatten2ranger <- function(data, cols) {
     if (length(dim(data)) == 2) {
         return(data[, cols])
@@ -38,15 +40,20 @@ flatten2ranger <- function(data, cols) {
     }
 }
 
-#' Higher-order function to test predictors against data and target.
+#' Higher-order model testing
 #'
-#' @param data The data to use for testing
-#' @param target The data to use for testing
-#' @param metric The metric to use, a function taking (target, actual).
-#' @param do.predict If TRUE (the default), run \code{predict} using the
-#' predictor, otherwise access its \code{$predictions} directly.
-#' @return a function which takes a predictor and evaluates \code{metric}
-#' with \code{target} and the predictions of \code{predictor} on \code{data}.
+#' Returns a procedure that can be used as \code{performance} metric in
+#' \link{train}.
+#'
+#' @param data matrix or 3D array. The data to use for testing.
+#' @param target numeric vector. The target values to predict.
+#' @param metric binary function. A metric to compare actual values
+#' with predictions.
+#' @param do.predict logical. Should \code{predict} be called (TRUE) or
+#' \code{$predictions} be accessed directly (FALSE)?
+#' @return A unary function which, takes a ranger-like predictor and evaluates
+#' \code{metric} with \code{target} and the predictions of \code{predictor}
+#' on \code{data}.
 #' @importFrom stats predict
 tester <- function(data, target, metric = ModelMetrics::auc,
                    do.predict = TRUE) {
