@@ -228,7 +228,7 @@ train <- function(forest, graph, features, target,
     for (iter in iter.min:iter.max) {
         message(iter, " of ", iter.max, " greedy steps")
 
-        ids_keep <- sample(1:length(last.perf), prob = last.perf, replace = TRUE)
+        ids_keep <- sample(seq_along(last.perf), prob = last.perf, replace = TRUE)
         kept_modules <- last.modules[ids_keep]
         walk.depth <- last.walk.depth[ids_keep]
 
@@ -236,7 +236,7 @@ train <- function(forest, graph, features, target,
             sample(module, 1)
         })
 
-        modules <- lapply(1:length(start_nodes), function(sn) {
+        modules <- lapply(seq_along(start_nodes), function(sn) {
             as.numeric(
                 igraph::random_walk(graph, start_nodes[sn], walk.depth[sn])
             )
@@ -368,7 +368,7 @@ predict.DFNET.forest <- function(forest, data) {
     pred <- matrix(NaN, length(forest$trees), dim(data)[1])
     data <- flatten2ranger(data)
 
-    for (count in 1:length(forest$trees)) {
+    for (count in seq_along(forest$trees)) {
         pred[count, ] <- predict(forest$trees[[count]], data)$predictions
     }
 

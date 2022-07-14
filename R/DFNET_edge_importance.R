@@ -35,7 +35,7 @@ edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
     edge_imp <- numeric(dim(edges)[1])
     edges_list <- lapply(apply(edges, 1, list), unlist)
 
-    for (xx in 1:length(tree_vars)) {
+    for (xx in seq_along(tree_vars)) {
         if (xx %% 100 == 0) message(xx, " of ", length(tree_vars), " trees")
 
         pred <- function(x) {

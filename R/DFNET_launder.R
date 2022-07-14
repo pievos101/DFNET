@@ -31,7 +31,7 @@ common_features <- function(features) {
     common.features.names <- Reduce(intersect, feature.names)
 
     common.features <- features
-    for (xx in 1:length(common.features)) {
+    for (xx in seq_along(common.features)) {
         common.features[[xx]] <- features[[xx]][, common.features.names]
     }
 
