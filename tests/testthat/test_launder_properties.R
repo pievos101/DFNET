@@ -98,6 +98,33 @@ test_that("graphed_features are graphed", {
     )
 })
 
+test_that("cut_off finds the right quantile", {
+    forall(
+        list(
+            nodes = gen.c(gen.s, from=3),
+            power = gen.element(seq(0.5, 3, by = 0.1)),
+            quantile = gen.element(seq(0.05, 0.95, by=0.05))
+        ),
+        function(nodes, power, quantile) {
+            if(length(unique(nodes)) < 3) discard()
+
+            graph <- sample.graph(nodes, power)
+
+            igraph::edge_attr(graph, "weights") <- sample(length(E(graph)))
+            bonsai <- cut_off(graph, threshold.quantile = quantile)
+
+            expect_lte(
+                length(E(bonsai)),
+                ceiling((1 - quantile) * length(E(graph)))
+            )
+            expect_gte(
+                length(E(bonsai)),
+                floor((1 - quantile) * length(E(graph)))
+            )
+        }
+    )
+})
+
 test_that("launder washes data", {
     forall(
         list(
