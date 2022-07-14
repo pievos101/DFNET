@@ -157,10 +157,10 @@ test_that("DFNET improves performance", {
                 NULL, graph, features, target, 0,
                 ntrees = ntrees, performance = p
             )
-            state1 <- train(
+            state1 <- tail(train(
                 state0, graph, features, target, niter,
                 performance = p
-            )
+            ), 1)
 
             expect_true(
                 all(performance(state0) <= performance(state1)),
