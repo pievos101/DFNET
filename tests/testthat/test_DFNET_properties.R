@@ -348,3 +348,39 @@ test_that("DFNET predicts data", {
         }
     )
 })
+
+test_that("head and tail compose", {
+    forall(
+        list(
+            gf = gen.graph_and_target,
+            niter = gen.test_niter,
+            ntrees = gen.test_ntrees
+        ),
+        function(gf, niter, ntrees) {
+            graph <- gf$graph
+            features <- gf$features
+            target <- gf$target
+
+            forest <- train(
+                NULL, graph, features, target, niter,
+                ntrees = ntrees
+            )
+
+            split <- sample(niter, size = 1)
+
+            h1 <- head(forest, split)
+            h2 <- head(forest, -split)
+            t1 <- tail(forest, -split)
+            t2 <- tail(forest, split)
+
+            expect_equal(
+                append(h1$modules, t1$modules),
+                forest$modules
+            )
+            expect_equal(
+                append(h2$modules, t2$modules),
+                forest$modules
+            )
+        }
+    )
+})
