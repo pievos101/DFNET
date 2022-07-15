@@ -280,30 +280,31 @@ train <- function(forest, graph, features, target,
 #' Return the first trees in the forest
 #'
 #' @description
-#' Returns the first (= oldest) trees in the forest.
+#' Returns the first (= oldest) trees in the forest.  The number of trees to
+#' keep is determined by multiplying the number of generations with the
+#' generation size of the forest (the \code{ntrees} parameter)
+#' in \link{train}.
 #'
 #' @details
 #' This function should not be used to retrain the forest from an earlier
 #' branch.  It does not return \code{last.performance} and may return a wrong
 #' value for \code{walk.depth}.
-#' @param forest The original \code{DFNET.forest}.
+#' @param x The original \code{DFNET.forest}.
 #' @param n.generations integer. The number of generations to keep.
+#' @param ... arguments to be passed to or from other methods.
 #' @return The first \code{n.generations} generations worth of modules
 #' and trees.
 #' @method head DFNET.forest
 #' @importFrom utils head
 #' @export
-head.DFNET.forest <- function(forest, n.generations = 6L) {
-    n.trees <- attr(forest, "generation_size")
-    old.modules.weights <- head(
-        forest$modules.weights,
-        n.generations * n.trees
-    )
+head.DFNET.forest <- function(x, n.generations = 6L, ...) {
+    n.trees <- attr(x, "generation_size")
+    old.modules.weights <- head(x$modules.weights, n.generations * n.trees)
 
     structure(
         list(
-            trees = head(forest$trees, n.generations * n.trees),
-            modules = head(forest$modules, n.generations * n.trees),
+            trees = head(x$trees, n.generations * n.trees),
+            modules = head(x$modules, n.generations * n.trees),
             modules.weights = old.modules.weights
         ),
         class = "DFNET.forest",
@@ -315,33 +316,34 @@ head.DFNET.forest <- function(forest, n.generations = 6L) {
 #' Return the last trees in the forest
 #'
 #' @description
-#' Returns the last (= newest) trees in the forest.
+#' Returns the last (= newest) trees in the forest.  The number of trees to
+#' keep is determined by multiplying the number of generations with the
+#' generation size of the forest (the \code{ntrees} parameter)
+#' in \link{train}.
 #'
 #' @details
 #' This function can be used to shrink the forest while training (since only
 #' the last generation will be used anyway).
-#' @param forest The original \code{DFNET.forest}.
+#' @param x The original \code{DFNET.forest}.
 #' @param n.generations integer. The number of generations to keep.
+#' @param ... arguments to be passed to or from other methods.
 #' @return The last \code{n.generations} generations worth of modules
 #' and trees.
 #' @method tail DFNET.forest
 #' @importFrom utils tail
 #' @export
-tail.DFNET.forest <- function(forest, n.generations = 6L) {
-    n.trees <- attr(forest, "generation_size")
+tail.DFNET.forest <- function(x, n.generations = 6L, ...) {
+    n.trees <- attr(x, "generation_size")
     return(structure(
         list(
-            trees = tail(forest$trees, n.generations * n.trees),
-            modules = tail(forest$modules, n.generations * n.trees),
-            modules.weights = tail(
-                forest$modules.weights,
-                n.generations * n.trees
-            )
+            trees = tail(x$trees, n.generations * n.trees),
+            modules = tail(x$modules, n.generations * n.trees),
+            modules.weights = tail(x$modules.weights, n.generations * n.trees)
         ),
         class = "DFNET.forest",
         generation_size = n.trees,
-        walk.depth = attr(forest, "walk.depth"),
-        last.performance = attr(forest, "last.performance")
+        walk.depth = attr(x, "walk.depth"),
+        last.performance = attr(x, "last.performance")
     ))
 }
 
@@ -349,8 +351,9 @@ tail.DFNET.forest <- function(forest, n.generations = 6L) {
 #'
 #' Uses a \code{DFNET.forest} to run predictions on data.
 #'
-#' @param forest The \code{DFNET.forest} to use for prediction.
+#' @param object The \code{DFNET.forest} to use for prediction.
 #' @param data matrix or 3D array. The data to run predictions on.
+#' @param ... arguments to be passed to or from other methods.
 #' @return A vector of predicted classes.
 #' @examples
 #' \dontrun{
@@ -364,12 +367,12 @@ tail.DFNET.forest <- function(forest, n.generations = 6L) {
 #' @method predict DFNET.forest
 #' @importFrom stats predict
 #' @export
-predict.DFNET.forest <- function(forest, data) {
-    pred <- matrix(NaN, length(forest$trees), dim(data)[1])
+predict.DFNET.forest <- function(object, data, ...) {
+    pred <- matrix(NaN, length(object$trees), dim(data)[1])
     data <- flatten2ranger(data)
 
-    for (count in seq_along(forest$trees)) {
-        pred[count, ] <- predict(forest$trees[[count]], data)$predictions
+    for (count in seq_along(object$trees)) {
+        pred[count, ] <- predict(object$trees[[count]], data)$predictions
     }
 
     val <- apply(pred, 2, function(x) {
