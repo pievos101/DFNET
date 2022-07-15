@@ -24,8 +24,6 @@
 #' @param mc.cores how many cores to use in parallel
 #' @return the importance of each edge in \code{graph} w.r.t. \code{trees}.
 edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
-    require(parallel) # parallel is a base package, it should always exist
-
     tree_vars <- lapply(
         trees, function(x) {
             names(x$variable.importance)
@@ -42,7 +40,7 @@ edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
         pred <- function(x) {
             all(is.element(x, tree_vars[[xx]]))
         }
-        res <- unlist(mclapply(edges_list, pred, mc.cores = mc.cores))
+        res <- unlist(parallel::mclapply(edges_list, pred, mc.cores = mc.cores))
 
         edge_imp[res] <- edge_imp[res] + tree_importances[xx]
     }
@@ -69,7 +67,7 @@ DFNET_edge_importance <- function(DFNET_graph, DFNET_object, parallel = FALSE) {
     )
 
     if (parallel) {
-        mc.cores <- detectCores() - 2
+        mc.cores <- parallel::detectCores() - 2
     } else {
         mc.cores <- 1
     }

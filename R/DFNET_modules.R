@@ -25,7 +25,7 @@ module_importance <- function(graph, modules, edge_importances,
         pred <- function(module) {
             all(is.element(edge, module))
         }
-        res <- unlist(mclapply(modules, pred, mc.cores = mc.cores))
+        res <- unlist(parallel::mclapply(modules, pred, mc.cores = mc.cores))
         # XXX: What about edge weight?
         module_imp[res, 1] <- module_imp[res, 1] + edge_importances[e]
     }
