@@ -1,4 +1,4 @@
-## test_DFNET_properties - Property-based testing on DFNET laundering.
+## test_launder_properties - Property-based testing on DFNET laundering.
 
 ## Copyright © 2022 Liliana Prikler <liliana.prikler@ist.tugraz.at>
 
