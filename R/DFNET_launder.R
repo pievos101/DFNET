@@ -139,6 +139,7 @@ launder <- function(graph, features, threshold = NaN, threshold.quantile = NaN) 
 #' @return The relativized vector \eqn{\alpha}, such that
 #' \eqn{x = (1-\alpha)\min(x) + \alpha\max(x)} holds w.r.t. floating point
 #' inaccuracies.
+#' @export
 #' @examples
 #' relat(1:3)
 #' relat(c(NaN, 2, 3, 4))
