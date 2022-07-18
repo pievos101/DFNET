@@ -25,6 +25,7 @@
 #' @param sep The seperator used to flatten the features from which
 #' \code{trees} were generated.
 #' @export
+#' @family metrics
 #' @return the importance of each edge in \code{graph} w.r.t. \code{trees}.
 edge_importance <- function(graph, trees, tree_importances,
                             mc.cores = 1, sep = "$") {
@@ -65,6 +66,7 @@ edge_importance <- function(graph, trees, tree_importances,
 #' @param features matrix or 3D array. The features on which it was trained.
 #' @param sep string.
 #' @export
+#' @family metrics
 #' @return A matrix of importance scores with one row per column in
 #' \code{features} and one column per matrix (in a 3D array).
 feature_importance <- function(forest, features, sep = "$") {
@@ -108,6 +110,7 @@ feature_importance <- function(forest, features, sep = "$") {
 #' in the forest
 #' @param mc.cores how many cores to use in parallel
 #' @export
+#' @family metrics
 #' @return the accumulated edge importance and total importance of each module.
 module_importance <- function(graph, modules, edge_importances,
                               tree_importances, mc.cores = 1) {
@@ -143,6 +146,7 @@ module_importance <- function(graph, modules, edge_importances,
 #' @param mc.cores how many cores to use in parallel
 #' @param collapse how accumulate multiple values per module
 #' @export
+#' @family metrics
 #' @return the collapsed tree and edge importances of each unique module, as
 #' well as their sum.
 unique_module_importance <- function(graph, modules, edge_importances,
