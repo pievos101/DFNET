@@ -22,12 +22,18 @@
 #' @param trees The decision trees returned by DFNET iterations
 #' @param tree_importances Numeric importance scores assigned to each tree
 #' @param mc.cores how many cores to use in parallel
+#' @param sep The seperator used to flatten the features from which
+#' \code{trees} were generated.
 #' @export
 #' @return the importance of each edge in \code{graph} w.r.t. \code{trees}.
-edge_importance <- function(graph, trees, tree_importances, mc.cores = 1) {
+edge_importance <- function(graph, trees, tree_importances,
+                            mc.cores = 1, sep = "$") {
     tree_vars <- lapply(
         trees, function(x) {
-            names(x$variable.importance)
+            sapply(
+                strsplit(names(x$variable.importance), sep, fixed = TRUE),
+                function(var) var[1]
+            )
         }
     )
 

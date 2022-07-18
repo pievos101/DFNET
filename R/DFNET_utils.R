@@ -19,11 +19,15 @@
 #' Flatten multi-modal data for ranger calls.
 #'
 #' Produces a flat matrix from \code{data}, a potentially 3-dimensional array.
+#' The column names of the new matrix are produced by pasting the dimnames
+#' together, using \code{sep} as separator.
+#'
 #' @param data matrix or 3D array. The data to flatten.
 #' @param cols vector. The (optional) columns to use.
+#' @param sep string. A separator to use when building the new column names.
 #' @return A matrix containing \code{data} reduced to \code{cols}, with
 #' the third dimension inserted as extra columns.
-flatten2ranger <- function(data, cols) {
+flatten2ranger <- function(data, cols, sep = "$") {
     if (length(dim(data)) == 2) {
         return(data[, cols])
     } else if (dim(data)[3] == 1) {
@@ -31,10 +35,25 @@ flatten2ranger <- function(data, cols) {
     } else {
         .data <- data[, cols, ]
         d <- dim(.data)
-        # XXX: repeats colnames per mode, strips mode name
+        dimname_pasta <- matrix("", nrow = d[2] * d[3], ncol=3)
+        colnames(dimname_pasta) <- c("cols", "modes", "sep")
+
+        dimname_pasta[, 1:2] <- as.matrix(expand.grid(
+            dimnames(.data)[[2]],
+            if (is.null(dimnames(.data)[[3]])) {
+                paste("mode", 1:d[3], sep = "")
+            } else {
+                dimnames(.data)[[3]]
+            }
+        ))
+        dimname_pasta[, 3] <- sep
+
         dimnames <- list(
             dimnames(.data)[[1]],
-            rep.int(dimnames(.data)[[2]], d[3])
+            sapply(
+                seq(1, d[2] * d[3]),
+                function (n) do.call(paste, as.list(dimname_pasta[n, ]))
+            )
         )
         return(matrix(.data, d[1], d[2] * d[3], dimnames = dimnames))
     }

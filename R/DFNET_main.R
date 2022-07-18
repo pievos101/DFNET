@@ -24,11 +24,12 @@
 #' @param raw_modules list of numeric vectors. The raw modules.
 #' @param features numeric matrix or 3D array. The features to train on.
 #' @param target numeric vector. The target to train towards.
+#' @param flatten.sep string. Separator to use when flattening features.
 #' @return A list of shape (\code{trees}, \code{modules},
 #' \code{modules.weights}), where \code{modules} are the sorted
 #' \code{raw_modules} with individual weights \code{modules.weights}, and
 #' \code{trees} contains one ranger decision tree per module.
-learn_decisions <- function(raw_modules, features, target) {
+learn_decisions <- function(raw_modules, features, target, flatten.sep = "$") {
     modules_rle <- lapply(raw_modules, function(m) rle(sort(m)))
 
     decision_trees <- lapply(modules_rle, function(m) {
@@ -36,7 +37,7 @@ learn_decisions <- function(raw_modules, features, target) {
         unique_nodes_weights <- m$lengths
         weights <- unique_nodes_weights
 
-        mm_data <- flatten2ranger(features, unique_nodes)
+        mm_data <- flatten2ranger(features, unique_nodes, sep = flatten.sep)
         weights <- rep_len(weights, dim(mm_data)[2])
 
         # Perform feature selection
@@ -73,11 +74,12 @@ learn_decisions <- function(raw_modules, features, target) {
 #' @param walk.depth integer. The number of nodes to select per module.
 #' @param performance unary function. Called with a decision tree as argument to
 #' estimate that tree's performance.
+#' @param flatten.sep string. Separator to use when flattening features.
 #' @importFrom igraph V
 #' @return An initialized \code{DFNET.forest}.
 init <- function(graph, features, target,
                  ntrees = 100, walk.depth = NaN,
-                 performance = NULL) {
+                 performance = NULL, flatten.sep = "$") {
     nodes <- V(graph)
     n.nodes <- length(nodes)
 
@@ -109,7 +111,7 @@ init <- function(graph, features, target,
         }
     }
 
-    seed <- learn_decisions(selected_nodes, features, target)
+    seed <- learn_decisions(selected_nodes, features, target, flatten.sep)
     last.perf <- sapply(seed$trees, performance)
 
     return(
@@ -169,6 +171,7 @@ init <- function(graph, features, target,
 #' during initialization.
 #' @param performance unary function. Called with a decision tree as argument to
 #' estimate that tree's performance.
+#' @param flatten.sep string. Separator to use when flattening features.
 #' @return The trained \code{DFNET.forest}.
 #' @importFrom utils tail
 #' @export
@@ -192,13 +195,13 @@ init <- function(graph, features, target,
 train <- function(forest, graph, features, target,
                   niter = 200, offset = 0, min.walk.depth = 2,
                   ntrees = 100, initial.walk.depth = NaN,
-                  performance = NULL) {
+                  performance = NULL, flatten.sep = "$") {
     stopifnot(niter >= 0, offset >= 0, min.walk.depth >= 1)
     if (missing(forest) || is.null(forest)) {
         forest <- init(
             graph, features, target,
             ntrees = ntrees, walk.depth = initial.walk.depth,
-            performance = performance
+            performance = performance, flatten.sep = flatten.sep
         )
     }
 
@@ -242,7 +245,7 @@ train <- function(forest, graph, features, target,
             )
         })
 
-        next_gen <- learn_decisions(modules, features, target)
+        next_gen <- learn_decisions(modules, features, target, flatten.sep)
         perf <- sapply(next_gen$trees, performance)
 
         good_enough <- perf >= last.perf
