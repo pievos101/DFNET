@@ -64,6 +64,7 @@ edge_importance <- function(graph, trees, tree_importances,
 #' @param forest The trained \code{DFNET.forest}.
 #' @param features matrix or 3D array. The features on which it was trained.
 #' @param sep string.
+#' @export
 #' @return A matrix of importance scores with one row per column in
 #' \code{features} and one column per matrix (in a 3D array).
 feature_importance <- function(forest, features, sep = "$") {

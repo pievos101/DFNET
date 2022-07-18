@@ -25,6 +25,7 @@
 #' @param features numeric matrix or 3D array. The features to train on.
 #' @param target numeric vector. The target to train towards.
 #' @param flatten.sep string. Separator to use when flattening features.
+#' @keywords internal
 #' @return A list of shape (\code{trees}, \code{modules},
 #' \code{modules.weights}), where \code{modules} are the sorted
 #' \code{raw_modules} with individual weights \code{modules.weights}, and
@@ -75,6 +76,7 @@ learn_decisions <- function(raw_modules, features, target, flatten.sep = "$") {
 #' @param performance unary function. Called with a decision tree as argument to
 #' estimate that tree's performance.
 #' @param flatten.sep string. Separator to use when flattening features.
+#' @keywords internal
 #' @importFrom igraph V
 #' @return An initialized \code{DFNET.forest}.
 init <- function(graph, features, target,

@@ -25,6 +25,7 @@
 #' @param data matrix or 3D array. The data to flatten.
 #' @param cols vector. The (optional) columns to use.
 #' @param sep string. A separator to use when building the new column names.
+#' @keywords internal
 #' @return A matrix containing \code{data} reduced to \code{cols}, with
 #' the third dimension inserted as extra columns.
 flatten2ranger <- function(data, cols, sep = "$") {
@@ -74,6 +75,7 @@ flatten2ranger <- function(data, cols, sep = "$") {
 #' \code{metric} with \code{target} and the predictions of \code{predictor}
 #' on \code{data}.
 #' @importFrom stats predict
+#' @export
 tester <- function(data, target, metric = ModelMetrics::auc,
                    do.predict = TRUE) {
     if (do.predict) {

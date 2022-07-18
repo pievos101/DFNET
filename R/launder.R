@@ -70,6 +70,7 @@ graphed_features <- function(features, graph) {
 #' @seealso \link[igraph:induced.subgraph]{igraph::induced_subgraph()}, which
 #' this procedure uses internally.
 #' @family data laundering techniques
+#' @keywords internal
 induced.subgraph.by_name <- function(graph, names) {
     igraph::induced.subgraph(
         graph,
