@@ -1,4 +1,4 @@
-## DFNET_launder.R - Medieval methods for data cleaning.
+## launder.R - Medieval methods for data cleaning.
 
 ## Copyright © 2021, 2022 Bastian Pfeifer <bastianxpfeifer@gmail.com>
 ## Copyright © 2022 Liliana Marie Prikler <liliana.prikler@ist.tugraz.at>

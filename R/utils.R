@@ -1,4 +1,4 @@
-## DFNET_utils - Various utilities.
+## utils.R - Various utilities.
 
 ## Copyright © 2021 Bastian Pfeifer <bastianxpfeifer@gmail.com>
 ## Copyright © 2022 Liliana Prikler <liliana.prikler@ist.tugraz.at>
