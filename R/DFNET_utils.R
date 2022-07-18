@@ -86,19 +86,3 @@ tester <- function(data, target, metric = ModelMetrics::auc,
         }
     }
 }
-
-#' Extract the multi-modal target vector from \code{features}
-#'
-#' @param features potentially multi-modal features as a matrix
-#' @return A list of shape \code{(target, is.multi_modal)}, where \code{target}
-#' is the target vector and \code{is.multi_modal} is true if the features are
-#' multi-modal.
-multi_modal_target <- function(features) {
-    is.multi_modal <- !is.data.frame(features)
-    if (is.multi_modal) {
-        target <- features[[1]][, "target"]
-    } else {
-        target <- features[, "target"]
-    }
-    return(list(target = target, is.multi_modal = is.multi_modal))
-}

@@ -54,31 +54,3 @@ edge_importance <- function(graph, trees, tree_importances,
 
     return(relat(edge_imp))
 }
-
-#' Calculate the importance of particular edges in the graph.
-#'
-#' @param DFNET_graph a list, whose first element is a graph and whose second
-#' element is a matrix of features
-#' @param DFNET_object an object as returned by \code{DFNET(DFNET_graph)}
-#' @param parallel TRUE to compute importances in parallel
-#' @return the importance of each edge in the graph of \code{DFNET_graph}
-#' w.r.t. the decision trees in \code{DFNET_object}
-DFNET_edge_importance <- function(DFNET_graph, DFNET_object, parallel = FALSE) {
-    graph <- DFNET_graph[[1]]
-    features <- DFNET_graph[[2]]
-    trees <- DFNET_object$DFNET_trees
-    mmt <- multi_modal_target(features)
-    scores <- sapply(
-        trees,
-        function(tree) ModelMetrics::auc(mmt$target, tree$predictions)
-    )
-
-    if (parallel) {
-        mc.cores <- parallel::detectCores() - 2
-    } else {
-        mc.cores <- 1
-    }
-    return(edge_importance(graph, trees, scores, mc.cores = mc.cores))
-}
-
-DFNET_Edge_Importance <- DFNET_edge_importance
