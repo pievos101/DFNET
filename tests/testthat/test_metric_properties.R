@@ -52,6 +52,27 @@ sample.fake_trees <- function(graph, modules) {
     )
 }
 
+sample.features <- function(graph, modules, n.samples, n.features) {
+    if (n.features == 0) {
+        features <- matrix(
+            sample(0:1, n.samples * length(V(graph)), replace = TRUE),
+            n.samples, length(V(graph))
+        )
+        colnames(features) <- igraph::vertex_attr(graph, "names")
+    } else {
+        features <- array(
+            sample(0:1, n.samples * length(V(graph)) * n.features, replace = TRUE),
+            c(n.samples, length(V(graph)), n.features),
+            dimnames = list(NULL, igraph::vertex_attr(graph, "names"), NULL)
+        )
+    }
+    target <- sample(0:1, n.samples, replace = TRUE)
+
+    return(list(
+        graph = graph, modules = modules, features = features, target = target
+    ))
+}
+
 gen.fake_trees <-
     gen.bind(
         function(params) {
@@ -71,6 +92,45 @@ gen.fake_trees <-
             names = c("n.nodes", "power", "n.modules")
         )
     )
+
+gen.fake_features <-
+    gen.bind(
+        function(params) {
+            gen.impure(function(n) {
+                gm <- sample.graph(
+                    params$n.nodes, params$power, params$n.modules
+                )
+                sample.features(
+                    gm$graph, gm$modules,
+                    params$n.samples, params$n.features
+                )
+            })
+        },
+        gen.structure(
+            list(
+                gen.element(seq(10, 30)),
+                gen.element(seq(0.5, 3, by = 0.1)),
+                gen.element(c(2, 4, 8, 16, 32, 64)),
+                gen.element(seq(100, 300, by = 10)),
+                gen.element(0:3)
+            ),
+            names = c(
+                "n.nodes", "power", "n.modules", "n.samples", "n.features"
+            )
+        )
+    )
+
+test_that("feature_importance has the right shape", {
+    forall(gen.fake_features, function(gt) {
+        for (m in gt$modules) {
+            if (length(m) < 2) discard()
+        }
+
+        d <- DFNET:::learn_decisions(gt$modules, gt$features, gt$target)
+        fimp <- feature_importance(d, gt$features)
+        expect_equal(dim(fimp), c(dim(gt$features), 1)[2:3])
+    })
+})
 
 test_that("edge importance is relative", {
     forall(gen.fake_trees, function(gt) {
