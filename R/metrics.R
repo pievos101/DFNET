@@ -92,7 +92,8 @@ feature_importance <- function(forest, features, sep = "$") {
     importance <- importance / length(trees)
 
     return(matrix(
-        importance, nrow = orig.dim[[2]],
+        importance,
+        nrow = orig.dim[[2]],
         dimnames = importance.dimnames
     ))
 }

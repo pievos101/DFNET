@@ -36,7 +36,7 @@ flatten2ranger <- function(data, cols, sep = "$") {
     } else {
         .data <- data[, cols, ]
         d <- dim(.data)
-        dimname_pasta <- matrix("", nrow = d[2] * d[3], ncol=3)
+        dimname_pasta <- matrix("", nrow = d[2] * d[3], ncol = 3)
         colnames(dimname_pasta) <- c("cols", "modes", "sep")
 
         dimname_pasta[, 1:2] <- as.matrix(expand.grid(
@@ -53,7 +53,7 @@ flatten2ranger <- function(data, cols, sep = "$") {
             dimnames(.data)[[1]],
             sapply(
                 seq(1, d[2] * d[3]),
-                function (n) do.call(paste, as.list(dimname_pasta[n, ]))
+                function(n) do.call(paste, as.list(dimname_pasta[n, ]))
             )
         )
         return(matrix(.data, d[1], d[2] * d[3], dimnames = dimnames))
