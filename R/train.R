@@ -25,12 +25,18 @@
 #' @param features numeric matrix or 3D array. The features to train on.
 #' @param target numeric vector. The target to train towards.
 #' @param flatten.sep string. Separator to use when flattening features.
+#' @param importance variable importance mode.
+#' See \link{ranger:ranger}{ranger::ranger}.
+#' @param splitrule Splitting rule.
+#' See \link{ranger:ranger}{ranger::ranger}.
 #' @keywords internal
 #' @return A list of shape (\code{trees}, \code{modules},
 #' \code{modules.weights}), where \code{modules} are the sorted
 #' \code{raw_modules} with individual weights \code{modules.weights}, and
 #' \code{trees} contains one ranger decision tree per module.
-learn_decisions <- function(raw_modules, features, target, flatten.sep = "$") {
+learn_decisions <- function(raw_modules, features, target, flatten.sep = "$",
+                            importance = "impurity_corrected",
+                            splitrule = "gini") {
     modules_rle <- lapply(raw_modules, function(m) rle(sort(m)))
 
     decision_trees <- lapply(modules_rle, function(m) {
@@ -48,7 +54,8 @@ learn_decisions <- function(raw_modules, features, target, flatten.sep = "$") {
             split.select.weights = weights / sum(weights),
             verbose = FALSE,
             classification = TRUE,
-            importance = "impurity",
+            importance = importance,
+            splitrule = splitrule,
             num.trees = 1,
             mtry = dim(mm_data)[2] - 1,
             replace = TRUE
@@ -68,9 +75,8 @@ learn_decisions <- function(raw_modules, features, target, flatten.sep = "$") {
 #'
 #' Initializes the decision forest network.
 #'
+#' @inheritParams learn_decisions
 #' @param graph The graph to train the network on.
-#' @param features matrix or 3D array. The features to train on.
-#' @param target numeric vector. the target to train towards.
 #' @param ntrees integer. The number of trees to generate per iteration.
 #' @param walk.depth integer. The number of nodes to select per module.
 #' @param performance unary function. Called with a decision tree as argument to
@@ -81,7 +87,9 @@ learn_decisions <- function(raw_modules, features, target, flatten.sep = "$") {
 #' @return An initialized \code{DFNET.forest}.
 init <- function(graph, features, target,
                  ntrees = 100, walk.depth = NaN,
-                 performance = NULL, flatten.sep = "$") {
+                 performance = NULL, flatten.sep = "$",
+                 importance = "impurity_corrected",
+                 splitrule = "gini") {
     nodes <- V(graph)
     n.nodes <- length(nodes)
 
@@ -113,7 +121,12 @@ init <- function(graph, features, target,
         }
     }
 
-    seed <- learn_decisions(selected_nodes, features, target, flatten.sep)
+    seed <- learn_decisions(
+        selected_nodes, features, target,
+        flatten.sep = flatten.sep,
+        importance = importance,
+        splitrule = splitrule
+    )
     last.perf <- sapply(seed$trees, performance)
 
     return(
@@ -159,22 +172,15 @@ init <- function(graph, features, target,
 #' iteration, and \code{last.performance} to a vector of length \code{ntrees},
 #' containing the result of \code{performance} of each tree w.r.t. \code{target}.
 #'
+#' @inheritParams init
 #' @param forest a \code{DFNET.forest} or \code{null}.
-#' @param graph The graph to train the forest on.
-#' @param features matrix or 3D array. The features to train on.
-#' @param target numeric vector. the target to train towards.
 #' @param niter integer. The number of iterations to run.
 #' @param offset integer. An offset added to the iteration count for logging
 #' purposes.
 #' @param min.walk.depth The integer minimal number of nodes to visit per tree
 #' per iteration.
-#' @param ntrees integer. The number of trees to generate per iteration.
 #' @param initial.walk.depth integer. The number of nodes to visit per tree
 #' during initialization.
-#' @param performance unary function. Called with a decision tree as argument to
-#' estimate that tree's performance.
-#' @param flatten.sep string. Separator to use when flattening features.
-#' @return The trained \code{DFNET.forest}.
 #' @importFrom utils tail
 #' @export
 #' @examples
@@ -197,13 +203,16 @@ init <- function(graph, features, target,
 train <- function(forest, graph, features, target,
                   niter = 200, offset = 0, min.walk.depth = 2,
                   ntrees = 100, initial.walk.depth = NaN,
-                  performance = NULL, flatten.sep = "$") {
+                  performance = NULL, flatten.sep = "$",
+                  importance = "impurity_corrected",
+                  splitrule = "gini") {
     stopifnot(niter >= 0, offset >= 0, min.walk.depth >= 1)
     if (missing(forest) || is.null(forest)) {
         forest <- init(
             graph, features, target,
             ntrees = ntrees, walk.depth = initial.walk.depth,
-            performance = performance, flatten.sep = flatten.sep
+            performance = performance, flatten.sep = flatten.sep,
+            importance = importance, splitrule = splitrule
         )
     }
 
@@ -247,7 +256,12 @@ train <- function(forest, graph, features, target,
             )
         })
 
-        next_gen <- learn_decisions(modules, features, target, flatten.sep)
+        next_gen <- learn_decisions(
+            modules, features, target,
+            flatten.sep = flatten.sep,
+            importance = importance,
+            splitrule = splitrule
+        )
         perf <- sapply(next_gen$trees, performance)
 
         good_enough <- perf >= last.perf
