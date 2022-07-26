@@ -1,5 +1,5 @@
 library(DFNET)
-source("graph.R")
+source(here::here("examples", "barabasi", "graph.R"))
 
 input <- NULL
 while (is.null(input)) {
