@@ -93,7 +93,15 @@ tail.DFNET.forest <- function(x, n.generations = 6L, ...) {
 #' @param object The \code{DFNET.forest} to use for prediction.
 #' @param data matrix or 3D array. The data to run predictions on.
 #' @param ... arguments to be passed to or from other methods.
-#' @return A vector of predicted classes.
+#' @return
+#' A list with members
+#' \describe{
+#'   \item{predictions}{the predicted classes}
+#'   \item{approval.rate}{the relative number of decision trees that predicted
+#' the given class.}
+#'   \item{participation.rate}{the relative number of decision trees that voted
+#' at all (i.e. did not predict \code{NaN} or \code{NA})}.
+#' }
 #' @examples
 #' \dontrun{
 #' smp_size <- floor(0.80 * dim(features)[1])
@@ -114,9 +122,22 @@ predict.DFNET.forest <- function(object, data, ...) {
         pred[count, ] <- predict(object$trees[[count]], data)$predictions
     }
 
-    val <- apply(pred, 2, function(x) {
+    predictions <- apply(pred, 2, function(x) {
         return(as.numeric(names(sort(table(x), decreasing = TRUE))[1]))
     })
-    names(val) <- dimnames(data)[[1]]
-    return(val)
+    approval.rate <- apply(pred, 2, function(x) {
+        votes <- sort(table(x), decreasing = TRUE)
+        return(votes[1] / sum(votes))
+    })
+    participation.rate <- apply(pred, 2, function(x) {
+        votes <- sort(table(x), decreasing = TRUE)
+        return(sum(votes) / length(object$trees))
+    })
+
+    names(predictions) <- dimnames(data)[[1]]
+    return(list(
+        predictions = predictions,
+        approval.rate = approval.rate,
+        participation.rate = participation.rate
+    ))
 }

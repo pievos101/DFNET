@@ -337,14 +337,21 @@ test_that("DFNET predicts data", {
                 ntrees = ntrees
             )
 
-            prediction <- predict(forest, test_features)
-            expect_equal(length(prediction), length(target[test_ids]))
-            given.labels <- unique(prediction)
+            x <- predict(forest, test_features)
+            expect_equal(length(x$predictions), length(target[test_ids]))
+            given.labels <- unique(x$predictions)
             allowed.labels <- sort(unique(c(NaN, target)))
             expect_equal(
                 sort(union(given.labels, allowed.labels)),
                 allowed.labels
             )
+            expect_equal(length(x$approval.rate), length(target[test_ids]))
+            expect_equal(length(x$participation.rate), length(target[test_ids]))
+
+            expect_true(all(x$approval.rate >= 0))
+            expect_true(all(x$approval.rate <= 1))
+            expect_true(all(x$participation.rate >= 0))
+            expect_true(all(x$participation.rate <= 1))
         }
     )
 })
