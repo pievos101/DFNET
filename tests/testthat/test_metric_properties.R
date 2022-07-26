@@ -27,9 +27,10 @@ sample.graph <- function(n.nodes, power, n.modules) {
 
     modules.init <- sample(V(g), n.modules, replace = TRUE)
     modules.size <- sample(
-        ceiling(sqrt(length(V(g)))), n.modules, replace = TRUE
+        ceiling(sqrt(length(V(g)))), n.modules,
+        replace = TRUE
     )
-    modules.size[modules.size == 1] = 2
+    modules.size[modules.size == 1] <- 2
 
     modules <- apply(cbind(modules.init, modules.size), 1, function(m) {
         unique(sort(as.numeric(igraph::random_walk(g, m[1], m[2]))))
