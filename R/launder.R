@@ -52,9 +52,9 @@ common_features <- function(features) {
 #' @family data laundering techniques
 graphed_features <- function(features, graph) {
     if (length(dim(features)) == 2) {
-        return(features[, igraph::vertex_attr(graph, "names")])
+        return(features[, igraph::vertex_attr(graph, "name")])
     } else {
-        return(features[, igraph::vertex_attr(graph, "names"), ])
+        return(features[, igraph::vertex_attr(graph, "name"), ])
     }
 }
 
@@ -74,7 +74,7 @@ graphed_features <- function(features, graph) {
 induced.subgraph.by_name <- function(graph, names) {
     igraph::induced.subgraph(
         graph,
-        stats::na.omit(match(names, igraph::vertex_attr(graph, "names")))
+        stats::na.omit(match(names, igraph::vertex_attr(graph, "name")))
     )
 }
 

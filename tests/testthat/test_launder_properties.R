@@ -21,7 +21,7 @@ library(stringr) # str_c
 sample.graph <- function(names, power) {
     names <- unique(names) # let's be cautious
     g <- igraph::sample_pa(length(names), power = power, directed = FALSE)
-    igraph::vertex_attr(g, "names") <- names
+    igraph::vertex_attr(g, "name") <- names
     return(g)
 }
 
@@ -92,7 +92,7 @@ test_that("graphed_features are graphed", {
 
             expect_equal(
                 sort(colnames(graphed.features)),
-                sort(igraph::vertex_attr(graph, "names"))
+                sort(igraph::vertex_attr(graph, "name"))
             )
         }
     )
@@ -147,7 +147,7 @@ test_that("launder washes data", {
 
             expect_equal(
                 dimnames(laundered$features)[[2]],
-                igraph::vertex_attr(laundered$graph, "names"),
+                igraph::vertex_attr(laundered$graph, "name"),
                 "laundered graph and features match"
             )
             expect_equal(

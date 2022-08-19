@@ -23,7 +23,7 @@ if (is.null(getOption("hedgehog.tests"))) {
 
 sample.graph <- function(n.nodes, power, n.modules) {
     g <- igraph::sample_pa(n.nodes, power = power, directed = FALSE)
-    igraph::vertex_attr(g, "names") <- paste("N_", 1:n.nodes)
+    igraph::vertex_attr(g, "name") <- paste("N_", 1:n.nodes)
 
     modules.init <- sample(V(g), n.modules, replace = TRUE)
     modules.size <- sample(
@@ -42,7 +42,7 @@ sample.graph <- function(n.nodes, power, n.modules) {
 sample.fake_trees <- function(graph, modules) {
     trees <- lapply(modules, function(m) {
         varimp <- sample(seq(0, 1, by = 0.01), size = length(m), replace = TRUE)
-        names(varimp) <- igraph::vertex_attr(graph, "names")[m]
+        names(varimp) <- igraph::vertex_attr(graph, "name")[m]
         list(variable.importance = varimp)
     })
 
@@ -59,12 +59,12 @@ sample.features <- function(graph, modules, n.samples, n.features) {
             sample(0:1, n.samples * length(V(graph)), replace = TRUE),
             n.samples, length(V(graph))
         )
-        colnames(features) <- igraph::vertex_attr(graph, "names")
+        colnames(features) <- igraph::vertex_attr(graph, "name")
     } else {
         features <- array(
             sample(0:1, n.samples * length(V(graph)) * n.features, replace = TRUE),
             c(n.samples, length(V(graph)), n.features),
-            dimnames = list(NULL, igraph::vertex_attr(graph, "names"), NULL)
+            dimnames = list(NULL, igraph::vertex_attr(graph, "name"), NULL)
         )
     }
     target <- sample(0:1, n.samples, replace = TRUE)
