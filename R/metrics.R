@@ -73,7 +73,7 @@ feature_importance <- function(forest, features, sep = "$") {
     orig.dim <- dim(features)
     importance.dimnames <- list(
         dimnames(features)[[2]],
-        if (length(dim(features) == 2)) NULL else dimnames(features)[[3]]
+        if (length(dim(features)) == 2) NULL else dimnames(features)[[3]]
     )
 
     features <- flatten2ranger(features, sep = sep)
