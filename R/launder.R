@@ -121,7 +121,10 @@ launder <- function(graph, features, threshold = NaN, threshold.quantile = NaN) 
     features <- common_features(features)
     graph <- induced.subgraph.by_name(graph, dimnames(features)[[2]])
     features <- graphed_features(features, graph)
-    graph <- cut_off(graph)
+    graph <- cut_off(
+        graph,
+        threshold = threshold, threshold.quantile = threshold.quantile
+    )
 
     return(list(graph = graph, features = features))
 }

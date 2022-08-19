@@ -24,7 +24,7 @@ Methy <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt"
 # TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
 # TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
-TARGET <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
+target <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
 # @FIXME -- UGLY
 # Replace NANs with mean
 na.ids <- which(apply(Methy, 2, function(x) {
@@ -36,6 +36,22 @@ for (xx in na.ids) {
     Methy[ids, xx] <- mean(Methy[, xx], na.rm = TRUE)
 }
 #-----------------------------
+
+## new code
+
+graph        <- graph_from_edgelist(as.matrix(PPI[,1:2]), directed=FALSE)
+
+features     <- list(mRNA, Methy)
+
+dfnet_graph  <- launder(graph, features, threshold = 990)
+
+dfnet_forest <- train(,dfnet_graph$graph, 
+                    mRNA, target, 
+                    ntrees = 100, niter = 10)
+
+
+
+
 
 # Read Data
 DFNET_graph <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
