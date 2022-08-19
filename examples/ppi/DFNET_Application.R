@@ -25,6 +25,8 @@ Methy <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt"
 # TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
 
 target <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
+target <- as.numeric(target)
+
 # @FIXME -- UGLY
 # Replace NANs with mean
 na.ids <- which(apply(Methy, 2, function(x) {
@@ -39,19 +41,40 @@ for (xx in na.ids) {
 
 ## new code
 
-graph        <- graph_from_edgelist(as.matrix(PPI[,1:2]), directed=FALSE)
+graph <- graph_from_edgelist(as.matrix(PPI[, 1:2]), directed = FALSE)
 
-features     <- list(mRNA, Methy)
+features <- list(
+    mRNA = as.matrix(mRNA),
+    Methy = as.matrix(Methy)
+)
 
-dfnet_graph  <- launder(graph, features, threshold = 990)
+dfnet_graph <- launder(graph, features, threshold = 990)
 
-dfnet_forest <- train(,dfnet_graph$graph, 
-                    mRNA, target, 
-                    ntrees = 100, niter = 10)
+dfnet_forest <- train(,
+    dfnet_graph$graph,
+    dfnet_graph$features, target,
+    ntrees = 100, niter = 10
+)
 
+last_gen <- tail(dfnet_forest, 1)
+trees <- last_gen$trees
+tree_imp <- attr(last_gen, "last.performance")
 
+# edge importance
+e_imp <- edge_importance(dfnet_graph$graph, trees, tree_imp)
 
+# module importance
+mod_imp <- unique_module_importance(
+    dfnet_graph$graph,
+    last_gen$modules,
+    e_imp,
+    tree_imp
+)
 
+# which.max(as.numeric(mod_imp$table[,"total"]))
+
+# feature importance
+feat_imp <- feature_importance(last_gen, dfnet_graph$features)
 
 # Read Data
 DFNET_graph <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
