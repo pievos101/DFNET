@@ -27,7 +27,6 @@ Methy <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt"
 target <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
 target <- as.numeric(target)
 
-# @FIXME -- UGLY
 # Replace NANs with mean
 na.ids <- which(apply(Methy, 2, function(x) {
     any(is.na(x))
@@ -38,6 +37,10 @@ for (xx in na.ids) {
     Methy[ids, xx] <- mean(Methy[, xx], na.rm = TRUE)
 }
 #-----------------------------
+
+# reduce data dimension for test purposes
+mRNA  = mRNA[,1:100]
+Methy = Methy[,1:100]
 
 ## new code
 
@@ -82,8 +85,8 @@ mod_imp <- module_importance(
 ids <- which.max(as.numeric(mod_imp[,"total"]))
 best_DT <- last_gen$trees[[ids]]
 
-# Prediction @TODO!!
-forest = concatenate(last_gen$trees)
+# convert2ranger
+# forest = convert2ranger(last_gen$trees)
 
 d1 = dfnet_graph$features[,,1]
 colnames(d1) = paste(colnames(d1),"$","mRNA", sep="")
@@ -92,10 +95,13 @@ colnames(d2) = paste(colnames(d2),"$","Methy", sep="")
 DATA = as.data.frame(cbind(d1,d2))
 
 # Predict using the best DT
-pred_best = predict(best_DT, DATA)
+pred_best = predict(best_DT, DATA)$predictions
 
 # predict using all detected modules
-pred_all = predict(forest, DATA)
+pred_all = predict(last_gen, DATA)$predictions
+
+pred_best
+pred_all
 
 
 #### OLD CODE PREDICTION & SHAP values

@@ -60,8 +60,8 @@ flatten2ranger <- function(data, cols, sep = "$") {
     }
 }
 
-# 'Concatenates a list of ranger DTs to a single forest'
-concatenate = function(DTs){
+# 'Concatenates a list of ranger DTs to a ranger forest'
+convert2ranger = function(DTs){
 
     fX = DTs[[1]]
 
