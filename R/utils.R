@@ -76,9 +76,27 @@ concatenate = function(DTs){
         fX$forest$child.nodeIDs = c(fX$forest$child.nodeIDs,f2$forest$child.nodeIDs)
         fX$forest$split.varIDs = c(fX$forest$split.varIDs,f2$forest$split.varIDs)
         fX$forest$split.values = c(fX$forest$split.values,f2$forest$split.values)
-        fX$forest$independent.variable.names = c(fX$forest$independent.variable.names, f2$forest$independent.variable.names)
+        if(!is.list(fX$forest$independent.variable.names)){
+            fX$forest$independent.variable.names = c(list(fX$forest$independent.variable.names), list(f2$forest$independent.variable.names))
+        }else{
+            fX$forest$independent.variable.names = c(fX$forest$independent.variable.names, list(f2$forest$independent.variable.names))
+        }
     }
-    fX$forest$independent.variable.names = unique(fX$forest$independent.variable.names )
+    #fX$forest$independent.variable.names = unique(fX$forest$independent.variable.names)
+    # Now update the split.varIDs
+    f_per_tree = fX$forest$independent.variable.names
+    feat_used  = unique(unlist(fX$forest$independent.variable.names))
+    old_ids    = fX$forest$split.varIDs
+
+    for(xx in 1:length(f_per_tree)){
+        fff = f_per_tree[[xx]][old_ids[[xx]]+1]
+        ids = match(fff, feat_used)
+        new_ids = ids - 1
+        fX$forest$split.varIDs[[xx]] = new_ids
+    }
+
+    fX$forest$independent.variable.names = feat_used 
+
     return(fX)
 }
 
