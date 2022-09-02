@@ -60,6 +60,28 @@ flatten2ranger <- function(data, cols, sep = "$") {
     }
 }
 
+# 'Concatenates a list of ranger DTs to a single forest'
+concatenate = function(DTs){
+
+    fX = DTs[[1]]
+
+    for(xx in 2:length(DTs)){  
+        f2 = DTs[[xx]]
+        fX$num.trees = fX$num.trees + f2$num.trees
+        fX$prediction.error = c(fX$prediction.error,f2$prediction.error)
+        fX$r.squared = c(fX$r.squared,f2$r.squared)
+        fX$num.samples = c(fX$num.samples,f2$num.samples)
+        fX$replace = c(fX$replace,f2$replace)
+        fX$forest$num.trees = fX$forest$num.trees+f2$forest$num.trees
+        fX$forest$child.nodeIDs = c(fX$forest$child.nodeIDs,f2$forest$child.nodeIDs)
+        fX$forest$split.varIDs = c(fX$forest$split.varIDs,f2$forest$split.varIDs)
+        fX$forest$split.values = c(fX$forest$split.values,f2$forest$split.values)
+    }
+
+    return(fX)
+}
+
+
 #' Higher-order model testing
 #'
 #' Returns a procedure that can be used as \code{performance} metric in
