@@ -76,8 +76,9 @@ concatenate = function(DTs){
         fX$forest$child.nodeIDs = c(fX$forest$child.nodeIDs,f2$forest$child.nodeIDs)
         fX$forest$split.varIDs = c(fX$forest$split.varIDs,f2$forest$split.varIDs)
         fX$forest$split.values = c(fX$forest$split.values,f2$forest$split.values)
+        fX$forest$independent.variable.names = c(fX$forest$independent.variable.names, f2$forest$independent.variable.names)
     }
-
+    fX$forest$independent.variable.names = unique(fX$forest$independent.variable.names )
     return(fX)
 }
 

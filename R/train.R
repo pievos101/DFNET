@@ -88,7 +88,7 @@ learn_decisions <- function(raw_modules, features, target, flatten.sep = "$",
 init <- function(graph, features, target,
                  ntrees = 100, walk.depth = NaN,
                  performance = NULL, flatten.sep = "$",
-                 importance = "impurity_corrected",
+                 importance = "impurity",
                  splitrule = "gini") {
     nodes <- V(graph)
     n.nodes <- length(nodes)
@@ -204,7 +204,7 @@ train <- function(forest, graph, features, target,
                   niter = 200, offset = 0, min.walk.depth = 2,
                   ntrees = 100, initial.walk.depth = NaN,
                   performance = NULL, flatten.sep = "$",
-                  importance = "impurity_corrected",
+                  importance = "impurity",
                   splitrule = "gini") {
     stopifnot(niter >= 0, offset >= 0, min.walk.depth >= 1)
     if (missing(forest) || is.null(forest)) {

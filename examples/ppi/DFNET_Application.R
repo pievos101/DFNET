@@ -82,19 +82,20 @@ mod_imp <- module_importance(
 ids <- which.max(as.numeric(mod_imp[,"total"]))
 best_DT <- last_gen$trees[[ids]]
 
-# Prediction @TODO
+# Prediction @TODO!!
 forest = concatenate(last_gen$trees)
 
 d1 = dfnet_graph$features[,,1]
 colnames(d1) = paste(colnames(d1),"$","mRNA", sep="")
 d2 = dfnet_graph$features[,,2]
 colnames(d2) = paste(colnames(d2),"$","Methy", sep="")
-predict(forest, cbind(d1,d2))
+DATA = as.data.frame(cbind(d1,d2))
 
+# Predict using the best DT
+pred_best = predict(best_DT, DATA)
 
-
-
-
+# predict using all detected modules
+pred_all = predict(forest, DATA)
 
 
 
