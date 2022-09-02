@@ -54,6 +54,7 @@ dfnet_graph <- launder(graph, features, threshold = NaN)
 dfnet_forest <- train(,
     dfnet_graph$graph,
     dfnet_graph$features, target,
+    importance="impurity",
     ntrees = 100, niter = 10,
     initial.walk.depth = 10
 )
@@ -82,6 +83,17 @@ ids <- which.max(as.numeric(mod_imp[,"total"]))
 best_DT <- last_gen$trees[[ids]]
 
 # Prediction @TODO
+forest = concatenate(last_gen$trees)
+
+d1 = dfnet_graph$features[,,1]
+colnames(d1) = paste(colnames(d1),"$","mRNA", sep="")
+d2 = dfnet_graph$features[,,2]
+colnames(d2) = paste(colnames(d2),"$","Methy", sep="")
+predict(forest, cbind(d1,d2))
+
+
+
+
 
 
 

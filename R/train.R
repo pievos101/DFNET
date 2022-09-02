@@ -35,7 +35,7 @@
 #' \code{raw_modules} with individual weights \code{modules.weights}, and
 #' \code{trees} contains one ranger decision tree per module.
 learn_decisions <- function(raw_modules, features, target, flatten.sep = "$",
-                            importance = "impurity_corrected",
+                            importance = "impurity",
                             splitrule = "gini") {
     modules_rle <- lapply(raw_modules, function(m) rle(sort(m)))
 
