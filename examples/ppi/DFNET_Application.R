@@ -5,25 +5,14 @@ library(pROC)
 library(DFNET)
 
 ## PPI
-# PPI      <- read.table("~/LinkedOmics/BRCA/BRCA_PPI.txt")
-# PPI      <- read.table("~/LinkedOmics/KIRC/KIDNEY_PPI.txt")
 PPI <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_PPI.txt")
 
 ## Features
-# mRNA     <- read.table("~/LinkedOmics/BRCA/BRCA_mRNA_FEATURES.txt")
-# mRNA     <- read.table("~/LinkedOmics/KIRC/KIDNEY_mRNA_FEATURES.txt")
 mRNA <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_mRNA_FEATURES.txt")
 
-# Methy    <- read.table("~/LinkedOmics/BRCA/BRCA_Methy_FEATURES.txt")
-# Methy    <- read.table("~/LinkedOmics/KIRC/KIDNEY_Methy_FEATURES.txt")
 Methy <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt")
 
-# Mut      <- read.table("~/LinkedOmics/BRCA/BRCA_Mut_FEATURES.txt")
-
-# Outcome class
-# TARGET   <- read.table("~/LinkedOmics/BRCA/BRCA_SURVIVAL.txt")
-# TARGET   <- read.table("~/LinkedOmics/KIRC/KIDNEY_SURVIVAL.txt")
-
+# outcome class
 target <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
 target <- as.numeric(target)
 
@@ -36,13 +25,12 @@ for (xx in na.ids) {
     ids <- which(is.na(Methy[, xx]))
     Methy[ids, xx] <- mean(Methy[, xx], na.rm = TRUE)
 }
-#-----------------------------
 
 # reduce data dimension for test purposes
 mRNA  = mRNA[,1:100]
 Methy = Methy[,1:100]
 
-## new code
+#-----------------------------
 
 graph <- graph_from_edgelist(as.matrix(PPI[, 1:2]), directed = FALSE)
 
@@ -64,7 +52,7 @@ dfnet_forest <- train(,
 
 # get the accuracy of the selected modules
 last_gen <- tail(dfnet_forest, 1)
-trees <- last_gen$trees
+trees    <- last_gen$trees
 tree_imp <- attr(last_gen, "last.performance")
 
 # edge importance
@@ -88,6 +76,7 @@ best_DT <- last_gen$trees[[ids]]
 # convert2ranger
 # forest = convert2ranger(last_gen$trees)
 
+# Prepare test data
 d1 = dfnet_graph$features[,,1]
 colnames(d1) = paste(colnames(d1),"$","mRNA", sep="")
 d2 = dfnet_graph$features[,,2]
@@ -103,43 +92,14 @@ pred_all = predict(last_gen, DATA)$predictions
 pred_best
 pred_all
 
+# Check the performance of the predictions
+ModelMetrics::auc(pred_best, target)
+ModelMetrics::auc(pred_all, target)
 
-#### OLD CODE PREDICTION & SHAP values
-
-# Test this module on the TEST set @TODO
-TREEID <- as.numeric(rownames(DFNET_mod)[1])
-
-DFNET_pred_best <- DFNET_predict(DFNET_object, DFNET_graph_test, tree.ID = TREEID)
-DFNET_perf_best <- DFNET_performance(DFNET_pred_best, as.factor(DFNET_graph_test$feature.matrix[[1]][, "target"]))
-
-DFNET_perf_best
-
-# TREE SHAP
+# TREE SHAP explanationa
 require(treeshap)
 forest_shap <- DFNET_explain(DFNET_object, DFNET_graph_test)
 sv <- forest_shap$shaps
 
 
-# Generate some plots
 
-## GGPLOT
-library(ggplot2)
-library(reshape)
-
-RES1 <- cbind(colnames(DFNET_Fimp), DFNET_Fimp[1, ])
-RES2 <- cbind(colnames(DFNET_Fimp), DFNET_Fimp[2, ])
-RES1 <- cbind(RES1, "mRNA")
-RES2 <- cbind(RES2, "Methylation")
-
-RES <- rbind(RES1, RES2)
-rownames(RES) <- NULL
-colnames(RES) <- c("Gene", "IMP", "Type")
-RES <- as.data.frame(RES)
-RES$IMP <- as.numeric(RES$IMP)
-
-p <- ggplot(RES, aes(fill = Type, y = IMP, x = Gene)) +
-    geom_bar(position = "dodge", stat = "identity") +
-    ylab("Feature Importance") +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-
-plot(p)
