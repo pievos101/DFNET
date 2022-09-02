@@ -16,27 +16,26 @@ Methy <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt"
 target <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
 target <- as.numeric(target)
 
-# Replace NANs with mean
-na.ids <- which(apply(Methy, 2, function(x) {
-    any(is.na(x))
-}))
-
-for (xx in na.ids) {
-    ids <- which(is.na(Methy[, xx]))
-    Methy[ids, xx] <- mean(Methy[, xx], na.rm = TRUE)
-}
-
 # reduce data dimension for test purposes
 mRNA  = mRNA[,1:100]
 Methy = Methy[,1:100]
 
+# train test split
+train_ids = sample(1:length(target), length(target)*0.80, replace=FALSE)
+test_ids  = setdiff(1:length(target), train_ids) 
+ 
+mRNA_train  = mRNA[train_ids,]
+Methy_train = Methy[train_ids,]
+
+mRNA_test  = mRNA[test_ids,]
+Methy_test = Methy[test_ids,]
 #-----------------------------
 
 graph <- graph_from_edgelist(as.matrix(PPI[, 1:2]), directed = FALSE)
 
 features <- list(
-    mRNA = as.matrix(mRNA),
-    Methy = as.matrix(Methy)
+    mRNA  = as.matrix(mRNA_train),
+    Methy = as.matrix(Methy_train)
 )
 
 dfnet_graph <- launder(graph, features, threshold = NaN)
@@ -44,7 +43,7 @@ dfnet_graph <- launder(graph, features, threshold = NaN)
 # train the GDF
 dfnet_forest <- train(,
     dfnet_graph$graph,
-    dfnet_graph$features, target,
+    dfnet_graph$features, target[train_ids],
     importance="impurity",
     ntrees = 100, niter = 10,
     initial.walk.depth = 10
@@ -77,11 +76,9 @@ best_DT <- last_gen$trees[[ids]]
 # forest = convert2ranger(last_gen$trees)
 
 # Prepare test data
-d1 = dfnet_graph$features[,,1]
-colnames(d1) = paste(colnames(d1),"$","mRNA", sep="")
-d2 = dfnet_graph$features[,,2]
-colnames(d2) = paste(colnames(d2),"$","Methy", sep="")
-DATA = as.data.frame(cbind(d1,d2))
+colnames(mRNA_test)  = paste(colnames(mRNA_test),"$","mRNA", sep="")
+colnames(Methy_test) = paste(colnames(Methy_test),"$","Methy", sep="")
+DATA = as.data.frame(cbind(mRNA_test, Methy_test))
 
 # Predict using the best DT
 pred_best = predict(best_DT, DATA)$predictions
@@ -93,13 +90,13 @@ pred_best
 pred_all
 
 # Check the performance of the predictions
-ModelMetrics::auc(pred_best, target)
-ModelMetrics::auc(pred_all, target)
+ModelMetrics::auc(pred_best, target[test_ids])
+ModelMetrics::auc(pred_all, target[test_ids])
 
 # TREE SHAP explanationa
 require(treeshap)
-forest_shap <- DFNET_explain(DFNET_object, DFNET_graph_test)
-sv <- forest_shap$shaps
+#forest_shap <- DFNET_explain(DFNET_object, DFNET_graph_test)
+#ssv <- forest_shap$shaps
 
 
 
