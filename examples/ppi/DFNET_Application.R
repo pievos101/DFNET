@@ -48,14 +48,17 @@ features <- list(
     Methy = as.matrix(Methy)
 )
 
-dfnet_graph <- launder(graph, features, threshold = 990)
+dfnet_graph <- launder(graph, features, threshold = NaN)
 
+# train the GDF
 dfnet_forest <- train(,
     dfnet_graph$graph,
     dfnet_graph$features, target,
-    ntrees = 100, niter = 10
+    ntrees = 100, niter = 10,
+    initial.walk.depth = 10
 )
 
+# get the accuracy of the selected modules
 last_gen <- tail(dfnet_forest, 1)
 trees <- last_gen$trees
 tree_imp <- attr(last_gen, "last.performance")
@@ -63,94 +66,28 @@ tree_imp <- attr(last_gen, "last.performance")
 # edge importance
 e_imp <- edge_importance(dfnet_graph$graph, trees, tree_imp)
 
+# feature importance
+feat_imp <- feature_importance(last_gen, dfnet_graph$features)
+
 # module importance
-mod_imp <- unique_module_importance(
+mod_imp <- module_importance(
     dfnet_graph$graph,
     last_gen$modules,
     e_imp,
     tree_imp
 )
 
-# which.max(as.numeric(mod_imp$table[,"total"]))
+# get the best module
+ids <- which.max(as.numeric(mod_imp[,"total"]))
+best_DT <- last_gen$trees[[ids]]
 
-# feature importance
-feat_imp <- feature_importance(last_gen, dfnet_graph$features)
-
-# Read Data
-DFNET_graph <- DFNET_generate_graph_Omics(PPI, list(mRNA, Methy), TARGET, 0.99)
-
-# Make data balanced -------------------------------------------- #
-TT <- table(unlist(TARGET))
-id <- which.min(TT)
-down_samp <- TT[id]
-class <- as.numeric(names(TT[id]))
-down_ids <- sample(which(unlist(TARGET) != class), down_samp)
-
-ids1 <- down_ids
-ids2 <- which(unlist(TARGET) == class)
-
-TARGET2 <- unlist(TARGET)[c(ids1, ids2)]
-
-for (xx in 1:length(DFNET_graph$feature.matrix)) {
-    DFNET_graph$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][c(ids1, ids2), ]
-}
-# ---------------------------------------- #
-
-# Pre-Processing
-DFNET_graph <- DFNET_preprocess(DFNET_graph)
+# Prediction @TODO
 
 
-# Create TRAIN set ----------------------------------- #
-DFNET_graph_train <- DFNET_graph
-## 80% of the sample size
-smp_size <- floor(0.80 * nrow(DFNET_graph$feature.matrix[[1]]))
-train_ids <- sample(seq_len(nrow(DFNET_graph$feature.matrix[[1]])), size = smp_size)
-for (xx in 1:length(DFNET_graph_train$feature.matrix)) {
-    DFNET_graph_train$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][train_ids, ]
-}
-table(TARGET2[train_ids])
 
-# Create TEST set ------------------------------------ #
-DFNET_graph_test <- DFNET_graph
-test_ids <- (1:nrow(DFNET_graph$feature.matrix[[1]]))[-train_ids]
-for (xx in 1:length(DFNET_graph_test$feature.matrix)) {
-    DFNET_graph_test$feature.matrix[[xx]] <- DFNET_graph$feature.matrix[[xx]][test_ids, ]
-}
-table(TARGET2[test_ids])
 
-## DFNET GREEDY FOREST
-# default values are:
-# ntrees = 500
-# niter = 20
-# init.mtry = 20
 
-# Perform DFNET
-DFNET_object <- DFNET(DFNET_graph_train, ntrees = 50, niter = 10, init.mtry = 20)
-
-print(length(DFNET_object$DFNET_trees))
-
-# PREDICTION
-DFNET_pred <- DFNET_predict(DFNET_object, DFNET_graph_test)
-
-# PERFORMANCE
-DFNET_perf <- DFNET_performance(DFNET_pred, as.factor(DFNET_graph_test$feature.matrix[[1]][, "target"]))
-
-DFNET_perf
-
-DFNET_perf$byClass
-
-############################################
-# Feature Selection - Importance Measures
-############################################
-
-DFNET_Eimp <- DFNET_Edge_Importance(DFNET_graph_train, DFNET_object)
-
-DFNET_mod <- DFNET_modules(DFNET_graph_train, DFNET_object, DFNET_Eimp)
-
-# Get the nodes of the top-1 module
-Nodes <- as.numeric(strsplit(DFNET_mod[1, 1], " ")[[1]])
-
-DFNET_Fimp <- DFNET_calc_feature_importance(Nodes, DFNET_object, DFNET_graph_train)
+#### OLD CODE PREDICTION & SHAP values
 
 # Test this module on the TEST set @TODO
 TREEID <- as.numeric(rownames(DFNET_mod)[1])
