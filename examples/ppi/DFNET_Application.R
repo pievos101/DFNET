@@ -5,20 +5,14 @@ library(pROC)
 library(DFNET)
 
 ## ppi
-PPI <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_PPI.txt")
+data(ppi)
 
 ## features
-mRNA <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_mRNA_FEATURES.txt")
-
-Methy <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt")
+data(mRNA)
+data(Methy)
 
 # outcome class
-target <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_TARGET.txt")
-target <- as.numeric(target)
-
-# reduce data dimension for test purposes
-mRNA  = mRNA[,1:100]
-Methy = Methy[,1:100]
+data(target)
 
 # train test split (80-20)
 train_ids = sample(1:length(target), length(target)*0.80, replace=FALSE)
@@ -31,7 +25,7 @@ mRNA_test  = mRNA[test_ids,]
 Methy_test = Methy[test_ids,]
 #-----------------------------
 
-graph <- graph_from_edgelist(as.matrix(PPI[, 1:2]), directed = FALSE)
+graph <- graph_from_edgelist(as.matrix(ppi), directed = FALSE)
 
 features <- list(
     mRNA  = as.matrix(mRNA_train),
