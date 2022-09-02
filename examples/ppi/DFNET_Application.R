@@ -1,13 +1,13 @@
-# DFNET Application (linekd Omics)
+# DFNET Application (data from linkedOmics)
 library(ranger)
 library(igraph)
 library(pROC)
 library(DFNET)
 
-## PPI
+## ppi
 PPI <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_PPI.txt")
 
-## Features
+## features
 mRNA <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_mRNA_FEATURES.txt")
 
 Methy <- read.table("~/LinkedOmics/KIRC-RANDOM/KIDNEY_RANDOM_Methy_FEATURES.txt")
@@ -20,7 +20,7 @@ target <- as.numeric(target)
 mRNA  = mRNA[,1:100]
 Methy = Methy[,1:100]
 
-# train test split
+# train test split (80-20)
 train_ids = sample(1:length(target), length(target)*0.80, replace=FALSE)
 test_ids  = setdiff(1:length(target), train_ids) 
  
