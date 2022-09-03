@@ -1,6 +1,6 @@
 Package: DFNET
 Type: Package
-Title: Network Module Detection from Multi-Modal Node Features with a Greedy Decision Forest
+Title: Graph-guided random forest for gene set selection
 Version: 1.3
 Date: 2021-08-18
 Author: Bastian Pfeifer
