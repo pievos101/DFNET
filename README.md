@@ -1,6 +1,6 @@
 ![DFNETLogo](https://github.com/pievos101/DFNET/blob/master/DFNET_plot.png)
 
-# Network Module Detection from Multi-Modal Node Features with a Greedy Decision Forest
+# Graph-guided random forest for gene set selection
 
 ## Paper 
 ### https://arxiv.org/abs/2108.11674
