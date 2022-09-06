@@ -1,4 +1,6 @@
 # DFNET Application (data from linkedOmics)
+# http://www.linkedomics.org/login.php#dataSource 
+
 library(ranger)
 library(igraph)
 library(pROC)
@@ -25,6 +27,7 @@ mRNA_test  = mRNA[test_ids,]
 Methy_test = Methy[test_ids,]
 #-----------------------------
 
+# get the induced graph structure
 graph <- graph_from_edgelist(as.matrix(ppi), directed = FALSE)
 
 features <- list(
