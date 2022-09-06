@@ -1,4 +1,4 @@
-![DFNETLogo](https://github.com/pievos101/DFNET/blob/master/DFNET_plot.png)
+![DFNETLogo](https://github.com/pievos101/DFNET/blob/master/DFNET_logo.png)
 
 # Graph-guided random forest for gene set selection
 
