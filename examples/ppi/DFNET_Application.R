@@ -43,7 +43,7 @@ dfnet_forest <- train(,
     initial.walk.depth = 10
 )
 
-# get the accuracy of the selected modules
+# get the selected modules
 last_gen <- tail(dfnet_forest, 1)
 trees    <- last_gen$trees
 tree_imp <- attr(last_gen, "last.performance")
@@ -72,13 +72,13 @@ best_DT <- last_gen$trees[[ids]]
 # Prepare test data
 colnames(mRNA_test)  = paste(colnames(mRNA_test),"$","mRNA", sep="")
 colnames(Methy_test) = paste(colnames(Methy_test),"$","Methy", sep="")
-DATA = as.data.frame(cbind(mRNA_test, Methy_test))
+DATA_test = as.data.frame(cbind(mRNA_test, Methy_test))
 
 # Predict using the best DT
-pred_best = predict(best_DT, DATA)$predictions
+pred_best = predict(best_DT, DATA_test)$predictions
 
 # predict using all detected modules
-pred_all = predict(last_gen, DATA)$predictions
+pred_all = predict(last_gen, DATA_test)$predictions
 
 pred_best
 pred_all
@@ -89,8 +89,12 @@ ModelMetrics::auc(pred_all, target[test_ids])
 
 # TREE SHAP explanationa
 require(treeshap)
-#forest_shap <- DFNET_explain(DFNET_object, DFNET_graph_test)
-#ssv <- forest_shap$shaps
+
+# unify dfnet forest to treeSHAP object
+forest_unified = dfnet_unify(last_gen$trees, DATA_test)
+
+# generate shapley values
+forest_shap = treeshap(forest_unified, DATA_test)
 
 
 
