@@ -8,11 +8,11 @@
 ## Installation
 The DFNET R-package can be installed using devtools.
 
+```{r}
 install.packages("devtools")
-
 library(devtools)
-
 install_github("pievos101/DFNET")
+```
 
 ## Usage
 
