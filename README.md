@@ -151,7 +151,7 @@ forest_shap = treeshap(forest_unified, DATA_test)
 @misc{https://doi.org/10.48550/arxiv.2108.11674,
     doi = {10.48550/ARXIV.2108.11674},
     url = {https://arxiv.org/abs/2108.11674},
-    author = {Pfeifer, Bastian and Baniecki, Hubert and        Saranti Anna and Biecek, Przemyslaw and Holzinger, Andreas},
+    author = {Pfeifer, Bastian and Baniecki, Hubert and Saranti, Anna and Biecek, Przemyslaw and Holzinger, Andreas},
     title = {Graph-guided random forest for gene set selection},
     publisher = {arXiv},
     year = {2021},
