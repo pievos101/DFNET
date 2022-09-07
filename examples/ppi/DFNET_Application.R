@@ -73,9 +73,11 @@ best_DT <- last_gen$trees[[ids]]
 # forest = convert2ranger(last_gen$trees)
 
 # Prepare test data
-colnames(mRNA_test)  = paste(colnames(mRNA_test),"$","mRNA", sep="")
-colnames(Methy_test) = paste(colnames(Methy_test),"$","Methy", sep="")
-DATA_test = as.data.frame(cbind(mRNA_test, Methy_test))
+test_features <- list(
+    mRNA  = as.matrix(mRNA_test),
+    Methy = as.matrix(Methy_test)
+)
+DATA_test <- DFNET:::flatten2ranger(common_features(test_features))
 
 # Predict using the best DT
 pred_best = predict(best_DT, DATA_test)$predictions
