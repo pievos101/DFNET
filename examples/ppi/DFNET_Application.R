@@ -90,14 +90,12 @@ pred_all
 ModelMetrics::auc(pred_best, target[test_ids])
 ModelMetrics::auc(pred_all, target[test_ids])
 
-# TREE SHAP explanationa
+# TREE SHAP explanations
 require(treeshap)
+source(here::here("extensions", "treeshap.R"))
 
 # unify dfnet forest to treeSHAP object
-forest_unified = dfnet_unify(last_gen$trees, DATA_test)
+forest_unified = dfnet.unify(last_gen$trees, DATA_test)
 
 # generate shapley values
 forest_shap = treeshap(forest_unified, DATA_test)
-
-
-
