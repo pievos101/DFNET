@@ -7,14 +7,14 @@ library(pROC)
 library(DFNET)
 
 ## ppi
-data(ppi)
+load(here::here("examples", "ppi", "ppi.rda"))
 
 ## features
-data(mRNA)
-data(Methy)
+load(here::here("examples", "ppi", "mRNA.rda"))
+load(here::here("examples", "ppi", "Methy.rda"))
 
 # outcome class
-data(target)
+load(here::here("examples", "ppi", "target.rda"))
 
 # train test split (80-20)
 train_ids = sample(1:length(target), length(target)*0.80, replace=FALSE)
