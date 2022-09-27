@@ -1,6 +1,6 @@
 ![DFNETLogo](https://github.com/pievos101/DFNET/blob/master/DFNET_plot.png)
 
-# Graph-guided random forest for gene set selection
+# Graph-guided random forest for feature subset selection
 
 ## Paper 
 ### https://arxiv.org/abs/2108.11674
