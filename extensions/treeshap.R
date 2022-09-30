@@ -44,6 +44,6 @@ dfnet.unify <- function(trees, data) {
     unified_model$Prediction <- unified_model$Prediction / length(trees)
     unified_forest <- unified_tree
     unified_forest$model <- unified_model
-    unified_forest$data <- data
+    unified_forest$data <- as.data.frame(data)
     return(unified_forest)
 }
