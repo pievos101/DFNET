@@ -4,7 +4,7 @@
 
 ## Paper
 
-### https://arxiv.org/abs/2108.11674
+### https://www.nature.com/articles/s41598-022-21417-8
 
 ## Installation
 The DFNET R-package can be installed using devtools.
@@ -148,12 +148,14 @@ forest_shap = treeshap(forest_unified, test_data)
 ## BibTeX Citation
 
 ```
-@misc{https://doi.org/10.48550/arxiv.2108.11674,
-    doi = {10.48550/ARXIV.2108.11674},
-    url = {https://arxiv.org/abs/2108.11674},
-    author = {Pfeifer, Bastian and Baniecki, Hubert and Saranti, Anna and Biecek, Przemyslaw and Holzinger, Andreas},
-    title = {Graph-guided random forest for gene set selection},
-    publisher = {arXiv},
-    year = {2021},
+@article{pfeifer2022multi,
+  title={Multi-omics disease module detection with an explainable Greedy Decision Forest},
+  author={Pfeifer, Bastian and Baniecki, Hubert and Saranti, Anna and Biecek, Przemyslaw and Holzinger, Andreas},
+  journal={Scientific Reports},
+  volume={12},
+  number={1},
+  pages={1--15},
+  year={2022},
+  publisher={Nature Publishing Group}
 }
 ```
