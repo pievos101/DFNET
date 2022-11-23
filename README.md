@@ -1,6 +1,6 @@
 
 <p align="center">
-<img src="https://github.com/pievos101/DFNET/blob/cran/DFNET_logo.png" width="400">
+<img src="https://github.com/pievos101/DFNET/blob/cran/DFNET_logo.png" width="500">
 </p>
 
 # Network-guided greedy decision forest for feature subset selection
